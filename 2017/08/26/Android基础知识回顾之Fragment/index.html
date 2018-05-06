@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android,进阶,activity,生命周期,fragment,fragmeng通信,FragmentManager,FragmentTransaction," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="开篇废话公司搬迁告一段落，吐槽一句，从此就需要过上车程一个半小时的上下班之旅了。。。。。。 上一篇我们了解了四大组件之一的Activity,应该对于Activity有了一定的了解，这一篇文章，我们一起来回顾一下我们依然比较熟悉的Fragment。 首先，我们要知道，在Android3.0以前，是没有Fragment这个的，但为了让大屏幕设备的UI更合理，更灵活，所以在Android3.0的时候，就">
+<meta name="keywords" content="Android,进阶,activity,生命周期,fragment,fragmeng通信,FragmentManager,FragmentTransaction">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android基础知识回顾之Fragment">
+<meta property="og:url" content="http://www.senduo.site/2017/08/26/Android基础知识回顾之Fragment/index.html">
+<meta property="og:site_name" content="一起玩编程">
+<meta property="og:description" content="开篇废话公司搬迁告一段落，吐槽一句，从此就需要过上车程一个半小时的上下班之旅了。。。。。。 上一篇我们了解了四大组件之一的Activity,应该对于Activity有了一定的了解，这一篇文章，我们一起来回顾一下我们依然比较熟悉的Fragment。 首先，我们要知道，在Android3.0以前，是没有Fragment这个的，但为了让大屏幕设备的UI更合理，更灵活，所以在Android3.0的时候，就">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6522799-8d29d36057dfe0ef.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6522799-802b8068496d52e1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6522799-618f6dfdcbc64ba7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6522799-dcf70e42f7e7be2b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2017-08-26T07:56:58.823Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android基础知识回顾之Fragment">
+<meta name="twitter:description" content="开篇废话公司搬迁告一段落，吐槽一句，从此就需要过上车程一个半小时的上下班之旅了。。。。。。 上一篇我们了解了四大组件之一的Activity,应该对于Activity有了一定的了解，这一篇文章，我们一起来回顾一下我们依然比较熟悉的Fragment。 首先，我们要知道，在Android3.0以前，是没有Fragment这个的，但为了让大屏幕设备的UI更合理，更灵活，所以在Android3.0的时候，就">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/6522799-8d29d36057dfe0ef.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.senduo.site/2017/08/26/Android基础知识回顾之Fragment/"/>
+
+
+
+
+
+  <title>Android基础知识回顾之Fragment | 一起玩编程</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?951cfb8fd64e7563e9e63d6e46c67845";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">一起玩编程</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://www.senduo.site/2017/08/26/Android基础知识回顾之Fragment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="senduo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="一起玩编程">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android基础知识回顾之Fragment</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T15:54:13+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android基础知识回顾/" itemprop="url" rel="index">
+                    <span itemprop="name">Android基础知识回顾</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/08/26/Android基础知识回顾之Fragment/" class="leancloud_visitors" data-flag-title="Android基础知识回顾之Fragment">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开篇废话"><a href="#开篇废话" class="headerlink" title="开篇废话"></a><strong>开篇废话</strong></h1><p>公司搬迁告一段落，吐槽一句，从此就需要过上车程一个半小时的上下班之旅了。。。。。。</p>
+<p>上一篇我们了解了四大组件之一的Activity,应该对于Activity有了一定的了解，这一篇文章，我们一起来回顾一下我们依然比较熟悉的Fragment。</p>
+<p>首先，我们要知道，在Android3.0以前，是没有Fragment这个的，但为了让大屏幕设备的UI更合理，更灵活，所以在Android3.0的时候，就出现了Fragment。而我们实际开发中更喜欢使用Fragment来替代之前的Activity的切换，主要是因为，Fragment进行切换更加的节省内存，同时，UI切换的时候，给用户的体验会更加的舒服。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6522799-8d29d36057dfe0ef.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="reason_for_fragment"></p>
+<p>那么， 接下来，我们一起来详细的回顾一下我们实际开发中所遇到的Fragment的相关知识。</p>
+<hr>
+<h1 id="技术详情"><a href="#技术详情" class="headerlink" title="技术详情"></a><strong>技术详情</strong></h1><p>本次回顾Fragment，准备按如下逻辑进行一一讲述：</p>
+<pre><code>1. Fragment为什么被称为第“五”大组件？
+
+2. Fragment的生命周期都有哪些？
+
+3. Fragment是如何通信的？
+
+4. Fragment管理器：FragmentManager是怎么管理Fragment的？
+</code></pre><h2 id="1-Fragment为什么被称为第五大组件？"><a href="#1-Fragment为什么被称为第五大组件？" class="headerlink" title="1.Fragment为什么被称为第五大组件？"></a><strong>1.Fragment为什么被称为第五大组件？</strong></h2><h3 id="1-Fragment被称为第五大组件的原因"><a href="#1-Fragment被称为第五大组件的原因" class="headerlink" title="1.Fragment被称为第五大组件的原因"></a><strong>1.Fragment被称为第五大组件的原因</strong></h3><p>众所周知，在我们的Android系统当中，有四大组件：Activity,Service,广播，ContentProvider。</p>
+<p>在我们实际开发当中，Fragment使用频率，作用都是非常突出的，所以说，将Fragment列为第五大组件也是可以的。</p>
+<p>不过也有不少人把View列为第五大组件，但是View与Fragment有一个比较明显的不同之处，就是View是没有生命周期的，而Fragment是有生命周期的，有了生命周期，Fragment就能与Activity一样进行更灵活的处理。</p>
+<p>不过，我们需要注意的是，Fragment并不是像Activity一样，完全独立的，虽然拥有自己的生命周期，但是，Fragment必须依附于Activity,同时还要加载到Activity当中去,接下来讲讲Fragment加载到Activity中的方式有哪些。</p>
+<h3 id="2-Fragment加载到Activity的两种方式"><a href="#2-Fragment加载到Activity的两种方式" class="headerlink" title="2.Fragment加载到Activity的两种方式"></a><strong>2.Fragment加载到Activity的两种方式</strong></h3><p><strong>首先，第一种加载方式，静态加载</strong></p>
+<p>把Fragment直接在作为一个xml标签加载到Activity的布局文件中去。下面讲一下实际开发中，我们是怎么使用静态加载的。</p>
+<p>首先需要有一个Activity承载Fragment的布局，这个Activity的布局如下：</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot; &gt;
+
+    &lt;fragment
+        android:id=&quot;@+id/fragment_title&quot;
+        android:name=&quot;senduo.com.studydemo.fragment.TitleFragment&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;50dp&quot; /&gt;
+
+    &lt;fragment
+        android:layout_below=&quot;@id/fragment_title&quot;
+        android:id=&quot;@+id/fragment_content&quot;
+        android:name=&quot;senduo.com.studydemo.fragment.ContentFragment&quot;
+        android:layout_width=&quot;fill_parent&quot;
+        android:layout_height=&quot;fill_parent&quot; /&gt;
+
+&lt;/RelativeLayout&gt;
+</code></pre><p>这个Activity的java文件ActivityForFragment.java如下（简单例子，不添加任何逻辑业务）：</p>
+<pre><code>import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+
+public class ActivityForFragment extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_for_fragment);
+    }
+}
+</code></pre><p>有了承载的Activity之后，就可以手动创建一个Fragment继承自Fragment，我这里用一个TitleFragment和ContentFragment来举例说明，</p>
+<p>TitleFragment.java文件为：</p>
+<pre><code>import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import senduo.com.studydemo.R;
+
+public class TitleFragment extends Fragment {
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_title, container, false);
+    }
+}
+</code></pre><p>对应的布局文件为fragment_title.xml：</p>
+<pre><code>&lt;FrameLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:background=&quot;@android:color/black&quot;
+    tools:context=&quot;senduo.com.studydemo.fragment.TitleFragment&quot;&gt;
+
+    &lt;!-- TODO: Update blank fragment layout --&gt;
+    &lt;TextView
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:gravity=&quot;center&quot;
+        android:textColor=&quot;@android:color/white&quot;
+        android:text=&quot;我是标题Fragment&quot; /&gt;
+
+&lt;/FrameLayout&gt;
+</code></pre><p>ContentFragment.java文件为：</p>
+<pre><code>import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import senduo.com.studydemo.R;
+
+public class ContentFragment extends Fragment {
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_content, container, false);
+    }
+
+}
+</code></pre><p>对应的布局文件为fragment_content.xml:</p>
+<pre><code>&lt;FrameLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    tools:context=&quot;senduo.com.studydemo.fragment.ContentFragment&quot;&gt;
+
+    &lt;!-- TODO: Update blank fragment layout --&gt;
+    &lt;TextView
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:gravity=&quot;center&quot;
+        android:text=&quot;我是界面内容Fragment&quot; /&gt;
+
+&lt;/FrameLayout&gt;
+</code></pre><p>然后看一下运行之后的效果如下：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6522799-802b8068496d52e1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p><strong>第二种加载方式，动态加载</strong></p>
+<p>我们实际开发中，用的比较多还是使用动态加载，通过FragmentManager和FragmentTransaction来进行动态创建Fragment。</p>
+<p>下面详细介绍一下Fragment的动态创建过程</p>
+<p><strong>第一步：创建FragmentManager的对象，然后通过这个对象创建一个FragmentTransaction实例对象</strong></p>
+<pre><code>FragmentManager fragmentManager = getFragmentManager();
+FragmentTransaction transaction = fragmentManager.beginTransaction();  
+</code></pre><p><strong>第二步：调用FragmentTransaction中的add()方法进行添加Fragment的对象</strong></p>
+<pre><code>transaction.add(R.id.fragment_content,TitleFragment);
+</code></pre><p>这里需要注意的是，第一个参数传入的不是layout而是Activity中的一个控件的ID，表示Fragment在Activity具体显示在哪里，同时也是在这个FragmentManager队列中的Fragment唯一标识符，在Fragment通信过程中需要用到</p>
+<p><strong>第三步：调用FragmentTransaction中的commit()方法，让以上操作进行生效</strong></p>
+<pre><code>transaction.commit();
+</code></pre><h3 id="3-FragmentPagerAdapter-和-FragmentStatePagerAdapter的区别"><a href="#3-FragmentPagerAdapter-和-FragmentStatePagerAdapter的区别" class="headerlink" title="3.FragmentPagerAdapter 和 FragmentStatePagerAdapter的区别"></a><strong>3.FragmentPagerAdapter 和 FragmentStatePagerAdapter的区别</strong></h3><p>我们实际开发中，使用Fragment，一般都是通过viewpager（左右滑动）控件与Fragment结合进行使用，Fragment用来控制滑动时显示的具体界面，他们之间的结合使用，就会有FragmentPagerAdapter与FragmentStatePagerAdapter的区别。</p>
+<p>我们可以有一个简单的概念：当Fragment页面较多的时候，使用FragmentStatePagerAdapter,较少的时候使用FragmentPagerAdapter</p>
+<p>而其中的原因，我们主要查看一下FragmentStatePagerAdapter的destroyItem()方法源码：</p>
+<pre><code> @Override
+public void destroyItem(ViewGroup container, int position, Object object) {
+    Fragment fragment = (Fragment) object;
+
+    if (mCurTransaction == null) {
+        mCurTransaction = mFragmentManager.beginTransaction();
+    }
+    if (DEBUG) Log.v(TAG, &quot;Removing item #&quot; + position + &quot;: f=&quot; + object
+            + &quot; v=&quot; + ((Fragment)object).getView());
+    while (mSavedState.size() &lt;= position) {
+        mSavedState.add(null);
+    }
+    mSavedState.set(position, fragment.isAdded()
+            ? mFragmentManager.saveFragmentInstanceState(fragment) : null);
+    mFragments.set(position, null);
+
+    mCurTransaction.remove(fragment);
+}
+</code></pre><p>可以看到，FragmentStatePagerAdapter的destoryItem() 的方法中的最后一行， mCurTransaction.remove(fragment)，是将这个Fragment实例直接从队列中移除，也就是释放了内存</p>
+<p>而FragmentPagerAdapter的destoryItem()方法源码：</p>
+<pre><code>@Override
+public void destroyItem(ViewGroup container, int position, Object object) {
+    if (mCurTransaction == null) {
+        mCurTransaction = mFragmentManager.beginTransaction();
+    }
+    if (DEBUG) Log.v(TAG, &quot;Detaching item #&quot; + getItemId(position) + &quot;: f=&quot; + object
+            + &quot; v=&quot; + ((Fragment)object).getView());
+    mCurTransaction.detach((Fragment)object);
+}
+</code></pre><p>最后一行是mCurTransaction.detach((Fragment)object)，调用的是detach方法，这个方法只是将Activity的UI与Fragment的UI进行分离，并没有进行回收内存，因此从内存占用角度来说，当页面较少的时候，比较适合使用FragmentPagerAdapter。</p>
+<h2 id="2-Fragment的生命周期都有哪些？"><a href="#2-Fragment的生命周期都有哪些？" class="headerlink" title="2.Fragment的生命周期都有哪些？"></a><strong>2.Fragment的生命周期都有哪些？</strong></h2><p>首先，我们来看一下Fragment独立的一个生命周期：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6522799-618f6dfdcbc64ba7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Fragment独立的生命周期"></p>
+<p>总的来看，Fragment的生命周期与Activity的生命周期比较相似。之前我们也谈到过，Fragment本身不能独立存在的，必须依附在某一个Activity上，那么，关于Fragment的实际开发中需要了解的生命周期，我们需要结合一下Activity的生命周期来进行认识：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6522799-dcf70e42f7e7be2b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="与Activity结合的Fragment生命周期"></p>
+<p>直接看图倒是可以知道整个流程，但是，方法确实太多了，他们之间的区别和联系其实还是没有办法能够搞清楚，一个一个进行讲解恐怕也会比较枯燥，所以，如果真正想弄懂整个过程，还是需要我们平时的日积月累以及深入探究。这里我就大概描述一下这个过程，希望能够帮助大家更好的进行理解：</p>
+<ol>
+<li>首先，我们能够看到，当Fragment进行第一次创建的时候，会调用onAttach()方法，表明Fragment与Activity进行关联后进行的回调</li>
+<li>onAttach()方法后，会调用Fragment中的onCreate()方法，初次创建Fragment的时候进行回调，区别于Activity的onCreate()方法，这个只是创建Fragment,但Activity并没有创建完成</li>
+<li>之后调用的Fragment的onCreateView()方法，表示系统首次绘制Fragment的UI，值得注意的是，从这个方法返回的View必须是Fragment布局的根视图。</li>
+<li>之后调用的是onViewCreated()方法，表示Fragment的UI界面已经完全绘制好了，这个时候可以进行初始化Fragment的控件资源</li>
+<li>接下来，就是调用Activity的onCreate()方法，表示Activity创建完成的回调</li>
+<li>之后，调用的是Fragment的onActivityCreated()方法，表示Activity被渲染，绘制成功以后进行的回调，值得注意的是，这个方法必须在Activity的onCreate()方法之后进行调用</li>
+<li>接着调用Activity的onStart()方法，表示Activity已经可见了</li>
+<li>之后调用Fragment的onStart()方法，表示Fragment也已经可见了</li>
+<li>接着调用Activity的onResume()方法，表示Activity已经可以与用户进行交互了</li>
+<li>之后调用Fragment的onResume()方法，表示Fragment也可以与用户进行交互了，可以执行处理点击，滑动之类的行为了，已经完成了Fragment从启动到展现的整个操作。</li>
+<li>接下来就是回退之后的生命周期了，先走Fragment的onPause()方法，表示已经不能与用户进行交互了</li>
+<li>接着调用Activity的onPause的方法，表示Activity也不能与用户进行交互了</li>
+<li>接着调用Fragment的onStop()方法，表示Fragment不可见了</li>
+<li>接着调用Activity的onStop()方法，表示Activity不可见了</li>
+<li>然后调用onDestoryView()方法，这个方法我们不是很熟悉，但是我们需要知道的是，与这个方法对应的是onCreateView()方法，表示这个Fragment即将结束，然后会被保存。</li>
+<li>接着会回调Fragment的onDestory()方法，与之前对应的onCreate()方法，表示Fragment不会被使用。</li>
+<li>接着调用Fragment生命周期的最后一个方法，onDetach()方法，表示整个Fragment已经被销毁</li>
+<li>最后调用Activity的onDestory()方法，表示整个Activity被回收了。</li>
+</ol>
+<p>以上就是一个Fragment从启动到销毁的整个过程，接下来我们来回顾一下Fragment的数据通信。</p>
+<h2 id="3-Fragment是如何通信的？"><a href="#3-Fragment是如何通信的？" class="headerlink" title="3. Fragment是如何通信的？"></a><strong>3. Fragment是如何通信的？</strong></h2><p>关于Fragment的通信，我们需要有以下三个大的概念：</p>
+<pre><code>1. 在Fragment中调用Activity中的方法 ----&gt; 使用getActivity()
+
+2. Activity中调用Fragment中的方法  ----&gt; 常用接口回调，在Fragment定义一个接口，在Activity中进行实现该接口
+
+3. Fragment中调用Fragment中的方法 ----&gt; 首先使用getActivity()获取Activity的方法，然后通过findFragmentById获取到另一个Fragment中的方法
+</code></pre><p>这三种方式，我们需要进行理解他们的使用方式，这样，我们遇到需要实现某一个功能的时候，可以借鉴这些方式进行实现，提供最适合的功能实现方案。</p>
+<h2 id="4-Fragment管理器：FragmentManager是怎么管理Fragment的"><a href="#4-Fragment管理器：FragmentManager是怎么管理Fragment的" class="headerlink" title="4.Fragment管理器：FragmentManager是怎么管理Fragment的"></a><strong>4.Fragment管理器：FragmentManager是怎么管理Fragment的</strong></h2><p>在我们实际开发过程当中，都需要将某一个Fragment进行显示，隐藏，替换，移除等相关的操作，我们都是通过FragmentManager的操作类FragmentTransaction对象进行操作的。<br>主要有以下这些方法：</p>
+<pre><code>1. add:将新创建的一个Fragment实例加入到FragmentManager的队列中去，切换的时候，Fragment的状态信息或者成员变量都没有发生改变
+
+2. replace：将之前显示的Fragment直接remove销毁掉，然后再把当前的Fragment add进来，也就是需要移除之前的Fragment再重新创建一个新的Fragment实例
+
+3. remove：移除，销毁FragmentManager队列中的Fragment
+
+4. hide:将某一个Fragment实例进行隐藏，但状态信息以及成员变量都没有进行回收
+
+5. show:将某一个Fragment实例进行显示
+
+6. detach：并不是将某一个Fragment实例进行销毁，而是将Fragment的View进行销毁，下次再加载的时候，需要重新绘制View
+
+7. attach: 与detach方法相对应，将之前销毁View的Fragment的实例进行重新绘制View,在实际开发中，这一对我们用的相对比较少，因为论速度，并没有hide/show方式那么快，论占用内存的多少，也没有比add/remove优化多少
+</code></pre><hr>
+<h1 id="干货总结"><a href="#干货总结" class="headerlink" title="干货总结"></a><strong>干货总结</strong></h1><p>通过上面四个方面的回顾，我们对于Fragment对认识应该有了一个整体的概念。</p>
+<p>不过，千说万说，不如自己动手去实践，最好的方式还是自己亲自将Fragment相关的一些实现用代码实现出来，遇到了坑，就会对某一个问题有了深刻理解。</p>
+<p>虽然Google也推荐我们尽量使用少Activity + 多Fragment的方式进行项目开发，但是，Fragment依然有些坑，我们在用的时候还是需要注意的。</p>
+<p>下面大概说几个我们在实际开发中使用Fragment的时候需要注意的地方：</p>
+<pre><code>1. 在同一个Activity中，只能存在一个id（Fragment的唯一标识）标识的Fragment实例。因为有可能在布局的时候会出现不允许创建的错
+误。
+
+2. FragmentManager的作用范围是整个Activity，因此某一个布局中的Fragment ID,不能重复进行替换。因为FragmentManager只认布局
+中的ID，如果有多个实例都是用的这一个布局ID，也只会显示一个。
+
+3. Fragment的可见性并没有像Activity那么方便操作，当A Fragment被B Fragment覆盖的时候，A此时是会回调Fragment的onStop()方
+法，但当B Fragmeng从栈中回退后，A Fragment无法感知自己正处于栈顶，需要我们开发人员自行监听一些状态来判断A Fragment是否对于
+用户可见
+
+4. Fragment的事件传递也需要注意，处于顶部的Fragment需要注意判断是否该消费此点击事件，否则如果存在多个Fragment层叠现象，可能
+下层的Fragment会消费此事件。
+
+...
+</code></pre><p>所以，我们在实际开发当中，还是需要了解当前功能使用Fragment是否OK，如果有问题，是否有相应的解决方案。</p>
+<p>好了，关于Fragment的一些知识点就先回顾到这里。</p>
+<p><strong>如果喜欢本篇文章的内容或者讲述形式，希望给一个喜欢和赞，如果有什么不对的地方，或者需要改进的地方，也希望能够留言说一下，谢谢了。</strong></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"># Android</a>
+          
+            <a href="/tags/进阶/" rel="tag"># 进阶</a>
+          
+            <a href="/tags/activity/" rel="tag"># activity</a>
+          
+            <a href="/tags/生命周期/" rel="tag"># 生命周期</a>
+          
+            <a href="/tags/fragment/" rel="tag"># fragment</a>
+          
+            <a href="/tags/fragmeng通信/" rel="tag"># fragmeng通信</a>
+          
+            <a href="/tags/FragmentManager/" rel="tag"># FragmentManager</a>
+          
+            <a href="/tags/FragmentTransaction/" rel="tag"># FragmentTransaction</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/Android基础知识回顾之Activity/" rel="next" title="Android基础知识回顾之Activity">
+                <i class="fa fa-chevron-left"></i> Android基础知识回顾之Activity
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/06/模拟OkHttp框架，手写简易网络访问框架/" rel="prev" title="模拟OkHttp框架，手写简易网络访问框架">
+                模拟OkHttp框架，手写简易网络访问框架 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.png"
+               alt="senduo" />
+          <p class="site-author-name" itemprop="name">senduo</p>
+           
+              <p class="site-description motion-element" itemprop="description">越努力越幸运</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">67</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ouyangshengduo" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#开篇废话"><span class="nav-number">1.</span> <span class="nav-text">开篇废话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#技术详情"><span class="nav-number">2.</span> <span class="nav-text">技术详情</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Fragment为什么被称为第五大组件？"><span class="nav-number">2.1.</span> <span class="nav-text">1.Fragment为什么被称为第五大组件？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Fragment被称为第五大组件的原因"><span class="nav-number">2.1.1.</span> <span class="nav-text">1.Fragment被称为第五大组件的原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Fragment加载到Activity的两种方式"><span class="nav-number">2.1.2.</span> <span class="nav-text">2.Fragment加载到Activity的两种方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-FragmentPagerAdapter-和-FragmentStatePagerAdapter的区别"><span class="nav-number">2.1.3.</span> <span class="nav-text">3.FragmentPagerAdapter 和 FragmentStatePagerAdapter的区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Fragment的生命周期都有哪些？"><span class="nav-number">2.2.</span> <span class="nav-text">2.Fragment的生命周期都有哪些？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Fragment是如何通信的？"><span class="nav-number">2.3.</span> <span class="nav-text">3. Fragment是如何通信的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Fragment管理器：FragmentManager是怎么管理Fragment的"><span class="nav-number">2.4.</span> <span class="nav-text">4.Fragment管理器：FragmentManager是怎么管理Fragment的</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#干货总结"><span class="nav-number">3.</span> <span class="nav-text">干货总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">senduo</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("Y5sgWBR0QVcvuVWG3MkOeH0P-gzGzoHsz", "M5ELqx0yvwMVH7iAMMPqfIg4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

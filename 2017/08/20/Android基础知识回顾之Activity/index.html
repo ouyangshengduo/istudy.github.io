@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android,进阶,activity,任务栈,生命周期,启动模式,scheme,standard,singleTop,singleTask,singleInstance," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="开篇废话最近公司忙着搬迁，没有太多的精力去分享一些比较耗时间的知识，随之就跟着之前的计划，开始回顾一下Android相关的基础知识。 今天我们一起来回顾一下我们接触最多，相对来说最熟悉的组件，Activity。 其实，当我在想什么是Activity的时候，确实有那么一会儿懵逼的感觉，因为不知道该如何组织语言去表达。 在这里，我大概说一下我的理解，到时候与别人交谈的时候，可以用这个思路来表达： 在我">
+<meta name="keywords" content="Android,进阶,activity,任务栈,生命周期,启动模式,scheme,standard,singleTop,singleTask,singleInstance">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android基础知识回顾之Activity">
+<meta property="og:url" content="http://www.senduo.site/2017/08/20/Android基础知识回顾之Activity/index.html">
+<meta property="og:site_name" content="一起玩编程">
+<meta property="og:description" content="开篇废话最近公司忙着搬迁，没有太多的精力去分享一些比较耗时间的知识，随之就跟着之前的计划，开始回顾一下Android相关的基础知识。 今天我们一起来回顾一下我们接触最多，相对来说最熟悉的组件，Activity。 其实，当我在想什么是Activity的时候，确实有那么一会儿懵逼的感觉，因为不知道该如何组织语言去表达。 在这里，我大概说一下我的理解，到时候与别人交谈的时候，可以用这个思路来表达： 在我">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://i.imgur.com/zUQPjKk.png">
+<meta property="og:image" content="http://i.imgur.com/zrUtVKc.png">
+<meta property="og:image" content="http://i.imgur.com/2SLcQtM.png">
+<meta property="og:image" content="http://i.imgur.com/446Xy9J.png">
+<meta property="og:image" content="http://i.imgur.com/H5WUDNu.png">
+<meta property="og:image" content="http://i.imgur.com/YQBeh8I.png">
+<meta property="og:image" content="http://i.imgur.com/pQELa9C.png">
+<meta property="og:image" content="http://i.imgur.com/TeK3d3E.png">
+<meta property="og:updated_time" content="2017-08-20T08:30:42.556Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android基础知识回顾之Activity">
+<meta name="twitter:description" content="开篇废话最近公司忙着搬迁，没有太多的精力去分享一些比较耗时间的知识，随之就跟着之前的计划，开始回顾一下Android相关的基础知识。 今天我们一起来回顾一下我们接触最多，相对来说最熟悉的组件，Activity。 其实，当我在想什么是Activity的时候，确实有那么一会儿懵逼的感觉，因为不知道该如何组织语言去表达。 在这里，我大概说一下我的理解，到时候与别人交谈的时候，可以用这个思路来表达： 在我">
+<meta name="twitter:image" content="http://i.imgur.com/zUQPjKk.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.senduo.site/2017/08/20/Android基础知识回顾之Activity/"/>
+
+
+
+
+
+  <title>Android基础知识回顾之Activity | 一起玩编程</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?951cfb8fd64e7563e9e63d6e46c67845";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">一起玩编程</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://www.senduo.site/2017/08/20/Android基础知识回顾之Activity/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="senduo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="一起玩编程">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android基础知识回顾之Activity</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T16:26:19+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android基础知识回顾/" itemprop="url" rel="index">
+                    <span itemprop="name">Android基础知识回顾</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/08/20/Android基础知识回顾之Activity/" class="leancloud_visitors" data-flag-title="Android基础知识回顾之Activity">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开篇废话"><a href="#开篇废话" class="headerlink" title="开篇废话"></a><strong>开篇废话</strong></h1><p>最近公司忙着搬迁，没有太多的精力去分享一些比较耗时间的知识，随之就跟着之前的计划，开始回顾一下Android相关的基础知识。</p>
+<p>今天我们一起来回顾一下我们接触最多，相对来说最熟悉的组件，Activity。</p>
+<p>其实，当我在想什么是Activity的时候，确实有那么一会儿懵逼的感觉，因为不知道该如何组织语言去表达。</p>
+<p>在这里，我大概说一下我的理解，到时候与别人交谈的时候，可以用这个思路来表达：</p>
+<p><strong>在我们日常应用中，Android是与用户交互的接口，它提供了一个界面让用户进行点击、各种滑动操作，这就是Activity的意义</strong></p>
+<hr>
+<h1 id="技术详情"><a href="#技术详情" class="headerlink" title="技术详情"></a><strong>技术详情</strong></h1><p>这次的内容比较简单，看起来会比较轻松，我主要分四个角度来进行讲述：</p>
+<pre><code>1. Activity的生命周期
+
+2. Android系统中的任务栈
+
+3. Activity的启动模式
+
+4. scheme跳转协议
+</code></pre><h2 id="1-Activity的生命周期"><a href="#1-Activity的生命周期" class="headerlink" title="1. Activity的生命周期"></a><strong>1. Activity的生命周期</strong></h2><h3 id="1-1-Activity的四种状态"><a href="#1-1-Activity的四种状态" class="headerlink" title="1.1 Activity的四种状态"></a><strong>1.1 Activity的四种状态</strong></h3><p><strong>running:</strong><br>表明activity处于活动状态，用户点击屏幕，屏幕可以作出响应，它是一个处于activity栈顶的状态</p>
+<p><strong>paused:</strong><br>表明activity失去焦点的时候，也许是被一个非全屏的activity占据，或者被一个透明的activity放置在activity栈顶，这种情况下，就处于paused状态，用户操作对它不会有响应，但并不代表它被销毁了，这时候，他所有的状态信息和成员变量都还在，除非系统内存非常紧张的时候，就有可能被销毁掉。</p>
+<p><strong>stopped:</strong></p>
+<p>当activity被另一个Activity完全覆盖的时候，被覆盖的那个activity就会处于stopped状态，当内存不紧张的时候，状态信息和成员变量也是还在的。</p>
+<p><strong>killed:</strong></p>
+<p>表明activity已经被系统回收掉了，状态信息和成员变量都已经不存在了。</p>
+<h3 id="1-2-Activity的生命周期分析"><a href="#1-2-Activity的生命周期分析" class="headerlink" title="1.2 Activity的生命周期分析"></a><strong>1.2 Activity的生命周期分析</strong></h3><p>首先，我们都需要看懂下面这张图：</p>
+<p><img src="http://i.imgur.com/zUQPjKk.png" alt="Activity生命周期"></p>
+<p>大概分析几个场景的调用流程：</p>
+<pre><code>1.Activity启动 --&gt;  onCreate() --&gt; onStart() --&gt; onResume()
+
+2.点击Home键回到系统主界面的时候 --&gt; onPause() --&gt; onStop()
+
+3.当我们再次回到原来的那个Activity的时候 --&gt; onRestart() --&gt; onStart() --&gt; onResume()
+
+4.退出当前的Activity的时候 --&gt; onPause() --&gt; onStop() --&gt; onDestory()
+
+5.A Activity 调用弹出B Activity的时候(完全覆盖) --&gt; A onPause() --&gt; B onCreate() --&gt; B onStart() --&gt; B onResume --&gt; A onStop()
+
+6.Activity异常退出的时候 --&gt; onPause() --&gt; onSaveInstanceState() --&gt; onStop() --&gt; onDestory(),
+需要注意的是onSaveInstanceState() 方法与onPause并没有严格的先后关系，有可能在onPause之前，也有可能在其后面调用，但会在onStop()方法之前调用
+
+7.异常退出后又重新启动该Activity --&gt; onCreate() --&gt; onStart() --&gt; onRestoreInstanceState() --&gt; onResume()
+</code></pre><h3 id="1-3-Android中的进程优先级"><a href="#1-3-Android中的进程优先级" class="headerlink" title="1.3 Android中的进程优先级"></a><strong>1.3 Android中的进程优先级</strong></h3><p>Android系统中，主要有这样五个进程优先级（按优先级高到低排列）：</p>
+<pre><code>1. 前台进程：一般情况下处于与用户进行交互的Activity或者与前台Activity绑定的Service
+
+2. 可见进程：如果一个Activity处于可见但是不是处于前台，就是用户不能点击的情况下就是可见进程
+
+3. 服务进程：就是在后台开启了一个Service服务，这就是服务进程
+
+4. 后台进程：假设我们当前的Activity是前台进程，然后我们按下Home键，前台进程就变成了后台进程
+
+5. 空进程：五个进程里面，优先级是最低的，如果我们的进程不属于上面四个进程的进程，那就是空进程，空进程系统可以随时杀死
+</code></pre><h2 id="2-Android系统中的任务栈"><a href="#2-Android系统中的任务栈" class="headerlink" title="2. Android系统中的任务栈"></a><strong>2. Android系统中的任务栈</strong></h2><p>我们的Android系统为了记录用户开启了哪些Activity,记录这些Activity开启的先后顺序，所以引入了任务栈(Task Stack)的概念，可以增强用户的体验。</p>
+<p><img src="http://i.imgur.com/zrUtVKc.png" alt="任务栈"></p>
+<p>任务栈与下面讲的启动模式其实密切相关，关于任务栈相关的知识点如下：</p>
+<pre><code>1. 任务栈，Task Stack，别名Back Stack（后退栈），记录存放用户开启的Activity
+
+2. 我们的App开启的时候，Android系统就给这个App分配了一个任务栈，当所有的Activity都退出的时候，任务栈就清空了
+
+3. 我们的App的任务栈并不是唯一的，可能不止一个任务栈，一个Activity也可以独享一个任务栈
+
+4. 清空了任务栈，我们的App的进程并不会销毁，还是会保留
+
+5. 任务栈可以移动到后台，并且保留了每一个Activity的状态信息和成员变量
+
+6. 只有在栈顶的Activity才能与用户进行交互
+</code></pre><h2 id="3-Activity的启动模式"><a href="#3-Activity的启动模式" class="headerlink" title="3. Activity的启动模式"></a><strong>3. Activity的启动模式</strong></h2><p>Android系统中Activity的启动模式主要有四种：</p>
+<pre><code>1. standard
+
+2. singleTop
+
+3. singleTask
+
+4. singleInstance
+</code></pre><h3 id="3-1-standard"><a href="#3-1-standard" class="headerlink" title="3.1 standard"></a><strong>3.1 standard</strong></h3><p>这个模式，我们平时开发中使用得比较多，属于默认模式，可以指定，也可以不用配置。</p>
+<p>在这个模式下，都会默认创建一个新的实例。也就意味着在一个任务栈中，可能存在多个相同的实例，也可以多个相同的Activity进行叠加</p>
+<p>可以在清单文件里面进行指定该启动模式：</p>
+<p>当前栈内顺序是A B C D，这个时候，在栈顶的D Activity启动A Activity,由于是A是Standard模式，那么就会在当前任务栈重新创建一个新的实例A，那么任务栈就变成了A B C D A。</p>
+<p><img src="http://i.imgur.com/2SLcQtM.png" alt="standard"></p>
+<h3 id="3-2-singleTop"><a href="#3-2-singleTop" class="headerlink" title="3.2 singleTop"></a><strong>3.2 singleTop</strong></h3><p>我们一般都称此模式为栈顶复用，表明与Standard不同的是，并不是每次都无脑的进行重新创建一个实例，需要进行判断。当被启动的Activity已经处于栈顶，就不会进行创建新的实例，而是调用栈顶Activity的onNewIntent方法，当然，如果栈顶的Activity并不是被启动的但是同一个任务栈的，依然会重新创建一个实例</p>
+<p><img src="http://i.imgur.com/446Xy9J.png" alt="singleTop_1"></p>
+<p><img src="http://i.imgur.com/H5WUDNu.png" alt="singleTop_2"></p>
+<h3 id="3-3-singleTask"><a href="#3-3-singleTask" class="headerlink" title="3.3 singleTask"></a><strong>3.3 singleTask</strong></h3><p>这个模式，我们中文称作栈内复用，与栈顶复用差不太多，只是，判断的是当前Activity处于的整个任务栈。如果在整个任务栈中，已经有当前Activity的实例，那就是调用该Activity的onNewIntent方法，而不会重新创建实例。</p>
+<p>这个模式值得注意的是，当需要复用当前任务栈中的某一个Activity实例的时候，会直接把该实例上面的Activity进行出栈进行销毁，从而将该Activity实例放于栈顶。</p>
+<p><img src="http://i.imgur.com/YQBeh8I.png" alt="singleTask_1"></p>
+<p><img src="http://i.imgur.com/pQELa9C.png" alt="singleTask_2"></p>
+<h3 id="3-3-singleInstance"><a href="#3-3-singleInstance" class="headerlink" title="3.3 singleInstance"></a><strong>3.3 singleInstance</strong></h3><p>这个模式比较特殊，当使用该模式的时候，会创建一个新的任务栈，而且，这个任务栈有且仅有这一个Activity实例。</p>
+<p>如果再一次调用这个Activity实例，就会发生发用，调用它的onNewIntent方法，反正不会再重新创建一个了。</p>
+<p>值得注意的是，按返回退出的时候，是一个任务栈都出栈完了之后，再操作另一个任务栈。</p>
+<p><img src="http://i.imgur.com/TeK3d3E.png" alt="singleInstance"></p>
+<h2 id="4-scheme跳转协议"><a href="#4-scheme跳转协议" class="headerlink" title="4. scheme跳转协议"></a><strong>4. scheme跳转协议</strong></h2><p>Android中的scheme是一种页面内跳转协议，是一种非常好的实现机制，通过定义自己的scheme协议，可以非常方便跳转到我们App中的各个页面；</p>
+<p>通过scheme协议，服务器也可以定制化告诉App跳转到那个页面，可以通过通知栏消息定制化跳转页面，也可以通过H5页面跳转到页面等。</p>
+<p>下面简单讲一下scheme的使用。</p>
+<p>第一步，将满足scheme协议的Activity在清单文件里面进行注册：</p>
+<pre><code>&lt;activity
+    android:name=&quot;.SecondActivity&quot;
+    android:launchMode=&quot;singleTask&quot;&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name=&quot;android.intent.action.VIEW&quot; /&gt;
+
+        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;
+
+        &lt;data android:scheme=&quot;senduo&quot; /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+</code></pre><p>第二步，在需要调用的地方，定义URI格式（也就是我们自定义的协议），其中格式URI格式如下：</p>
+<pre><code>[scheme:][//domain][path][?query][#fragment]
+</code></pre><p>代码举例说明如下：</p>
+<pre><code>tvDomain = (TextView) findViewById(R.id.tvDomain);
+tvDomainWithParams = (TextView) findViewById(R.id.tvDomainWithParams);
+
+tvDomain.setText(Html.fromHtml(&quot;&lt;a href=&apos;senduo://domain/path?params&apos;&gt;无参示例&lt;/a&gt;&quot;));
+tvDomain.setMovementMethod(LinkMovementMethod.getInstance());
+
+
+tvDomainWithParams.setText(Html.fromHtml(&quot;&lt;a href=&apos;senduo://second_activity?id=123456&amp;name=senduo&apos;&gt;有参示例&lt;/a&gt;&quot;));
+tvDomainWithParams.setMovementMethod(LinkMovementMethod.getInstance());
+</code></pre><p>第三步，在onCreate方法或者onNewIntent方法中进行URI的解析，根据实际的业务逻辑进行处理</p>
+<pre><code>@Override
+protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    Uri uri = intent.getData();
+    if (uri != null) {
+        dispatchUri(uri);
+    } else {
+        Log.e(TAG, &quot;Uri is null&quot;);
+    }
+}
+
+
+
+//URI的解析
+private void dispatchUri(Uri uri) {
+    try {
+        final String domain = uri.getAuthority();
+        if (TextUtils.equals(SECOND_DOMAIN, domain)) {
+            final int id = Integer.valueOf(uri.getQueryParameter(&quot;id&quot;));
+            final String name = uri.getQueryParameter(&quot;name&quot;);
+            Toast.makeText(this, id + &quot;  &quot; + name, Toast.LENGTH_SHORT).show();
+        }
+    } catch (Exception e) {
+        Log.e(TAG, &quot;Uri Parse Error&quot;);
+    }
+}
+</code></pre><p>关于scheme的调用，可以根据具体的实际业务场景进行自行设计，像通知栏的跳转，网页的跳转啥的，具体的内容可以查看相关博客进行更深一步的学习。</p>
+<hr>
+<h1 id="干货总结"><a href="#干货总结" class="headerlink" title="干货总结"></a><strong>干货总结</strong></h1><p>以上，是这一次关于Activity知识的一个整理，其实，Activity的知识点可以讲的很简单，也可以深入Framework层进行分析，那样理解起来会比较吃力，但收获也将不少。奈何最近各种需要干苦力，这些分析就留到Android源码分析的时候再深入了解吧。</p>
+<p>我们作为一个Android开发人员来讲，Activity是四大组件中离我们最近，接触得最多的一个，需要对它的一些原理，机制有一定的了解，希望通过这一篇文章，能够提供一个清晰的思路来回顾Activity，能够回答以下问题：</p>
+<pre><code>1. 什么是Activity
+
+2. activity有哪些状态
+
+3. 手绘Activity的生命周期图
+
+4. Android系统中的进程优先级
+
+5. Activity的四种启动模式简述
+
+6. scheme跳转协议是什么
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"># Android</a>
+          
+            <a href="/tags/进阶/" rel="tag"># 进阶</a>
+          
+            <a href="/tags/activity/" rel="tag"># activity</a>
+          
+            <a href="/tags/任务栈/" rel="tag"># 任务栈</a>
+          
+            <a href="/tags/生命周期/" rel="tag"># 生命周期</a>
+          
+            <a href="/tags/启动模式/" rel="tag"># 启动模式</a>
+          
+            <a href="/tags/scheme/" rel="tag"># scheme</a>
+          
+            <a href="/tags/standard/" rel="tag"># standard</a>
+          
+            <a href="/tags/singleTop/" rel="tag"># singleTop</a>
+          
+            <a href="/tags/singleTask/" rel="tag"># singleTask</a>
+          
+            <a href="/tags/singleInstance/" rel="tag"># singleInstance</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/16/Android性能调优篇之内存溢出/" rel="next" title="Android性能调优篇之内存溢出">
+                <i class="fa fa-chevron-left"></i> Android性能调优篇之内存溢出
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/Android基础知识回顾之Fragment/" rel="prev" title="Android基础知识回顾之Fragment">
+                Android基础知识回顾之Fragment <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.png"
+               alt="senduo" />
+          <p class="site-author-name" itemprop="name">senduo</p>
+           
+              <p class="site-description motion-element" itemprop="description">越努力越幸运</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">67</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ouyangshengduo" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#开篇废话"><span class="nav-number">1.</span> <span class="nav-text">开篇废话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#技术详情"><span class="nav-number">2.</span> <span class="nav-text">技术详情</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Activity的生命周期"><span class="nav-number">2.1.</span> <span class="nav-text">1. Activity的生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-Activity的四种状态"><span class="nav-number">2.1.1.</span> <span class="nav-text">1.1 Activity的四种状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-Activity的生命周期分析"><span class="nav-number">2.1.2.</span> <span class="nav-text">1.2 Activity的生命周期分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-Android中的进程优先级"><span class="nav-number">2.1.3.</span> <span class="nav-text">1.3 Android中的进程优先级</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Android系统中的任务栈"><span class="nav-number">2.2.</span> <span class="nav-text">2. Android系统中的任务栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Activity的启动模式"><span class="nav-number">2.3.</span> <span class="nav-text">3. Activity的启动模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-standard"><span class="nav-number">2.3.1.</span> <span class="nav-text">3.1 standard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-singleTop"><span class="nav-number">2.3.2.</span> <span class="nav-text">3.2 singleTop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-singleTask"><span class="nav-number">2.3.3.</span> <span class="nav-text">3.3 singleTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-singleInstance"><span class="nav-number">2.3.4.</span> <span class="nav-text">3.3 singleInstance</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-scheme跳转协议"><span class="nav-number">2.4.</span> <span class="nav-text">4. scheme跳转协议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#干货总结"><span class="nav-number">3.</span> <span class="nav-text">干货总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">senduo</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("Y5sgWBR0QVcvuVWG3MkOeH0P-gzGzoHsz", "M5ELqx0yvwMVH7iAMMPqfIg4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

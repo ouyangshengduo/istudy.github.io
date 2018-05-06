@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android,进阶,性能调优,JVM,内存分配,JVM内存模型,java内存分配,内存,java,内存回收,GC,回收算法,引用基数,可达性分析,标记,整理,复制,分代回收," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="开篇废话如果我们想要进行内存优化的工作，还是需要了解一下，但这一块的知识属于纯理论的，有可能看起来会有点枯燥，我尽量把这一篇的内容按照一定的逻辑来走一遍。首先，我们为什么要学习垃圾回收的机制，我大概归纳了一下几点： 12345671.方便我们理解什么样的对象，什么时候，会被系统回收掉2.有助于我们后面的内存优化3.了解这一块的知识也能提升自己的知识广度，和同事一起装逼的时候有话题4.如果有面试的需">
+<meta name="keywords" content="Android,进阶,性能调优,JVM,内存分配,JVM内存模型,java内存分配,内存,java,内存回收,GC,回收算法,引用基数,可达性分析,标记,整理,复制,分代回收">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android性能调优篇之探索垃圾回收机制">
+<meta property="og:url" content="http://www.senduo.site/2017/08/13/Android性能调优篇之探索垃圾回收机制/index.html">
+<meta property="og:site_name" content="一起玩编程">
+<meta property="og:description" content="开篇废话如果我们想要进行内存优化的工作，还是需要了解一下，但这一块的知识属于纯理论的，有可能看起来会有点枯燥，我尽量把这一篇的内容按照一定的逻辑来走一遍。首先，我们为什么要学习垃圾回收的机制，我大概归纳了一下几点： 12345671.方便我们理解什么样的对象，什么时候，会被系统回收掉2.有助于我们后面的内存优化3.了解这一块的知识也能提升自己的知识广度，和同事一起装逼的时候有话题4.如果有面试的需">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/gc_recycled_object.png?raw=true">
+<meta property="og:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/gc_root_object.png?raw=true">
+<meta property="og:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/memory_gc_compare.png?raw=true">
+<meta property="og:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/mark_clear.png?raw=true">
+<meta property="og:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/copying.png?raw=true">
+<meta property="og:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/mark_compact.png?raw=true">
+<meta property="og:updated_time" content="2017-08-13T15:10:07.102Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android性能调优篇之探索垃圾回收机制">
+<meta name="twitter:description" content="开篇废话如果我们想要进行内存优化的工作，还是需要了解一下，但这一块的知识属于纯理论的，有可能看起来会有点枯燥，我尽量把这一篇的内容按照一定的逻辑来走一遍。首先，我们为什么要学习垃圾回收的机制，我大概归纳了一下几点： 12345671.方便我们理解什么样的对象，什么时候，会被系统回收掉2.有助于我们后面的内存优化3.了解这一块的知识也能提升自己的知识广度，和同事一起装逼的时候有话题4.如果有面试的需">
+<meta name="twitter:image" content="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/gc_recycled_object.png?raw=true">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.senduo.site/2017/08/13/Android性能调优篇之探索垃圾回收机制/"/>
+
+
+
+
+
+  <title>Android性能调优篇之探索垃圾回收机制 | 一起玩编程</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?951cfb8fd64e7563e9e63d6e46c67845";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">一起玩编程</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://www.senduo.site/2017/08/13/Android性能调优篇之探索垃圾回收机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="senduo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="一起玩编程">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android性能调优篇之探索垃圾回收机制</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-13T23:00:49+08:00">
+                2017-08-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/a-p-opt/" itemprop="url" rel="index">
+                    <span itemprop="name">Android性能调优</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/08/13/Android性能调优篇之探索垃圾回收机制/" class="leancloud_visitors" data-flag-title="Android性能调优篇之探索垃圾回收机制">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开篇废话"><a href="#开篇废话" class="headerlink" title="开篇废话"></a><strong>开篇废话</strong></h1><p>如果我们想要进行内存优化的工作，还是需要了解一下，但这一块的知识属于纯理论的，有可能看起来会有点枯燥，我尽量把这一篇的内容按照一定的逻辑来走一遍。首先，我们为什么要学习垃圾回收的机制，我大概归纳了一下几点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.方便我们理解什么样的对象，什么时候，会被系统回收掉</div><div class="line"></div><div class="line">2.有助于我们后面的内存优化</div><div class="line"></div><div class="line">3.了解这一块的知识也能提升自己的知识广度，和同事一起装逼的时候有话题</div><div class="line"></div><div class="line">4.如果有面试的需求的话，了解这一块，也能从容面对考官，对于内存回收能够说出个一二</div></pre></td></tr></table></figure>
+<p>好了，废话不多说了，我大概按以下这个逻辑来一个一个讲述：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">1.什么是垃圾回收（GC）</div><div class="line"></div><div class="line">2.垃圾回收机制对于我们来说有什么好处？又有什么缺点？</div><div class="line"></div><div class="line">3.垃圾回收它是如何工作的？</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="技术详情"><a href="#技术详情" class="headerlink" title="技术详情"></a><strong>技术详情</strong></h1><h2 id="1-什么是垃圾回收（GC）"><a href="#1-什么是垃圾回收（GC）" class="headerlink" title="1.什么是垃圾回收（GC）"></a>1.什么是垃圾回收（GC）</h2><p>垃圾回收或GC（Garbage Collection）,是一种自动的存储管理机制，它是Java语言的一大特性，方便了我们这些程序员编码，把内存释放工作的压力都转让到了系统，故而是以消耗系统性能为代价的。C++编码的时候，我们 需要自己实现析构函数来进行内存释放，很麻烦，而且非常容易遗漏而最终导致程序崩掉。所以Java语言就引入了自动内存管理的机制，也就是垃圾回收机制，针对的主要的内存的堆区域，关于内存的分配机制，请查看我的上一篇<a href="http://www.jianshu.com/p/88f9993acce1" target="_blank" rel="external">Android性能调优篇之探索JVM内存分配</a></p>
+<h2 id="2-垃圾回收机制对于我们来说有什么好处？又会带来哪些坑？"><a href="#2-垃圾回收机制对于我们来说有什么好处？又会带来哪些坑？" class="headerlink" title="2.垃圾回收机制对于我们来说有什么好处？又会带来哪些坑？"></a>2.垃圾回收机制对于我们来说有什么好处？又会带来哪些坑？</h2><p>以下我列举一下系统自动垃圾回收给我们带来的一些好处：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.让作为程序员的我们专注于逻辑实现，提高了我们的编码效率</div><div class="line"></div><div class="line">2.能够保护程序的完整性，垃圾回收是Java语言的安全策略的一个重要部分</div></pre></td></tr></table></figure>
+<p>但是随之的，也会到来一些缺点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.系统层面负责垃圾回收，明显会加大系统资源的开销，从而影响程序的性能</div><div class="line"></div><div class="line">2.垃圾回收机制也存在不完备性，并不能百分百保证回收所有的垃圾内存</div></pre></td></tr></table></figure>
+<h2 id="3-垃圾回收它是如何工作的？"><a href="#3-垃圾回收它是如何工作的？" class="headerlink" title="3.垃圾回收它是如何工作的？"></a>3.垃圾回收它是如何工作的？</h2><p>其实，GC是主要的一个流程是：先根据一定的算法判定某个对象是否存活，然后把判定是垃圾的对象进行回收。详细点说的话，GC的工作流程分以下几个步骤：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.可回收对象的判定</div><div class="line"></div><div class="line">2.通过某些算法回收垃圾内存</div></pre></td></tr></table></figure>
+<p>下面一个一个进行讲述</p>
+<h3 id="1-可回收对象的判定"><a href="#1-可回收对象的判定" class="headerlink" title="1.可回收对象的判定"></a>1.可回收对象的判定</h3><p>我们的GC需要把某个对象回收掉，肯定是需要判断它到底是不是垃圾，是不是需要被回收，因此，就需要对每一个对象进行可回收判定。</p>
+<p>目前，市面上存在有两种算法来判定一个对象是否是垃圾</p>
+<h4 id="1-引用计数算法"><a href="#1-引用计数算法" class="headerlink" title="1.引用计数算法"></a>1.引用计数算法</h4><p>这种算法的工作原理是: </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.首先给每一个对象都添加一个引用计数器</div><div class="line"></div><div class="line">2.当程序的某一个地方引用了此对象，这个计数器的值就加1</div><div class="line"></div><div class="line">3.当引用失效的时候（例如超过了作用域），这个计数器就减1</div><div class="line"></div><div class="line">4.当某一个对象的计数器的值是0的时候，则判定这个对象不可能被使用</div></pre></td></tr></table></figure>
+<p>这种算法对于系统来说比较简单，高效，垃圾回收器运行较快，不需要长时间中断我们的程序的执行，但是缺点是很难处理循环引用，这就导致相互引用的对象都无法被回收：</p>
+<p><img src="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/gc_recycled_object.png?raw=true" alt="循环引用"><br>我记得OC（Objective-C）中的垃圾判定就是用的引用计数方法，引用了一个第三方变量来打破这个平衡，但OC也没有很好的解决这个问题，而是更多的依靠我们这些开发者来处理。</p>
+<h4 id="2-GC-Root可达性分析算法"><a href="#2-GC-Root可达性分析算法" class="headerlink" title="2.GC Root可达性分析算法"></a>2.GC Root可达性分析算法</h4><p>这个算法的工作原理是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">1.以称作“GC Root”的对象作为起点向下搜索</div><div class="line"></div><div class="line">2.每走过一个对象，就生成一条引用链</div><div class="line"></div><div class="line">3.从根开始到搜索完，生成了一棵引用树，那些到GC Root不可达的对象就是可以回收的</div></pre></td></tr></table></figure>
+<p>这个方法明显就解决了循环引用的问题，不过这个算法还是稍微有点复杂的,以下是GC Root可达性算法的一个图解：</p>
+<p><img src="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/gc_root_object.png?raw=true" alt="比较"></p>
+<p>我们程序中能够被用来当做GC Root对象的有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.虚拟机栈（栈帧中的本地变量表）中引用的对象</div><div class="line"></div><div class="line">2.方法区中静态属性引用的对象</div><div class="line"></div><div class="line">3.方法区中常量引用的对象</div><div class="line"></div><div class="line">4.本地方法栈中JNI引用的对象</div></pre></td></tr></table></figure>
+<p>以下拿一个图来进行引用计数算法与可达性分析算法的比较：</p>
+<p><img src="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/memory_gc_compare.png?raw=true" alt="比较"></p>
+<p>文字说明：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.若使用引用计数算法判定，但图中的C和D对象存在相互引用，导致计数器不为0，无法回收掉</div><div class="line"></div><div class="line">2.若使用可达性分析算法，C和D对象到GC Roots 不可达，则能够回收</div></pre></td></tr></table></figure></p>
+<p>关于对象可回收的判定，我们还需要注意的是，当系统开始启动GC的时候，为了保证引用链的状态不变，就需要停止该进程中所有的程序（Stop The World），我们Android中的现象就是UI卡顿了，但一般这样的卡顿时间是非常短的，当然，要是频繁的产生GC，那就另当别论了。</p>
+<p>还有值得注意的是，不可达对象也并非立即就被回收了，还需要经过两次的标记过程后才被会被真正回收：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.如果对象与GC Root没有连接的引用链，就会被第一次标记，随后判定该对象是否有必要执行finalize()方法</div><div class="line"></div><div class="line">2.如果有必要执行finalize()方法，则这个对象就会被放到F-Queue的队列中，稍后由虚</div><div class="line">拟机建立低优先级的Finalizer线程去执行，但并不承诺等待它运行结束（对象类中能够</div><div class="line">重写finalize()方法进行自救，但系统最多只能执行一次）</div><div class="line"></div><div class="line">3.如果没必要执行finalize()方法，则第二次标记</div></pre></td></tr></table></figure>
+<h3 id="2-通过某些算法回收垃圾内存"><a href="#2-通过某些算法回收垃圾内存" class="headerlink" title="2.通过某些算法回收垃圾内存"></a>2.通过某些算法回收垃圾内存</h3><p>以上内容讲述了系统如何去判定某一个对象是否是垃圾，是否应该被回收。接着，当判定了某一个对象为垃圾对象后，系统就要开始进行回收了，那么系统的垃圾回收算法以下几种：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.标记清除算法(Mark-Sweep)</div><div class="line"></div><div class="line">2.复制算法(Copying)</div><div class="line"></div><div class="line">3.标记整理算法(Mark-Compact)</div><div class="line"></div><div class="line">4.分代回收算法</div></pre></td></tr></table></figure>
+<p>以下进行一一讲述</p>
+<h4 id="1-标记清除算法-Mark-Sweep"><a href="#1-标记清除算法-Mark-Sweep" class="headerlink" title="1.标记清除算法(Mark-Sweep)"></a>1.标记清除算法(Mark-Sweep)</h4><p>顾名思义，这个算法是先进行标记，然后进行清除，也正是这个算法的两个阶段：标记阶段和清除阶段，以下图解：</p>
+<p><img src="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/mark_clear.png?raw=true" alt="标记清除"></p>
+<p>从图中可以看出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">这个算法的优点是易于理解，容易实现，只需要将特定地址的空间进行处理。</div><div class="line">但缺点也比较明显，把整个内存区域弄得非常不完整，形成了很多碎片化的内存，对于</div><div class="line">分配大内存的对象时，无法申请足够的空间，从而更多次的触发GC</div></pre></td></tr></table></figure>
+<h4 id="2-复制算法-Copying"><a href="#2-复制算法-Copying" class="headerlink" title="2.复制算法(Copying)"></a>2.复制算法(Copying)</h4><p>复制算法，是对标记清除算法而导致内存碎片化的一个解决方案，算法原理如下：</p>
+<p><img src="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/copying.png?raw=true" alt="复制算法"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">1.如图所示,复制算法将内存平均分成两个区域A （上）和 B（下）</div><div class="line"></div><div class="line">2.将A中的存活的那些对象复制到B区域中</div><div class="line"></div><div class="line">3.然后将A区域的所有对象都清除，这样A区域就是一个完整的内存块了，也就避免了内</div><div class="line">存碎片化了</div></pre></td></tr></table></figure>
+<p>但是这个算法也有明显的缺点，那就是不管A区域或B区域有多少个存活对象，都需要将整块内存分成两个区域，意味着能够真正使用的内存变成了一半。</p>
+<h4 id="3-标记整理算法-Mark-Compact"><a href="#3-标记整理算法-Mark-Compact" class="headerlink" title="3.标记整理算法(Mark-Compact)"></a>3.标记整理算法(Mark-Compact)</h4><p>标记整理算法是对于标记清楚的一个优化，工作原理是：</p>
+<p><img src="https://github.com/ouyangshengduo/istudy.github.io/blob/master/images/memory_gc/mark_compact.png?raw=true" alt="标记整理"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">1.如图所示，第一步也需要进行存活对象的一个标记，这一步与标记清除算法一模一样</div><div class="line"></div><div class="line">2.将存活的对象向一端移动，例如图中是往左上角那一端进行移动</div><div class="line"></div><div class="line">3.然后把另一端的内存进行清理</div></pre></td></tr></table></figure>
+<p>从图中也可以看出，这个算法也能避免内存碎片化的问题，但是效率确实不怎么样，毕竟相较于复制算法， 多了一步效率同样比较低的标记过程，而与标记清除算法相比，多了一步内存整理（往一端移动）的过程，效率上明显就更低了。</p>
+<p>毕竟世界是公平的，任何算法都有两面性，我们开发者只能具体情况具体分析，使用最适合的算法。因此标记整理算法从图中可以看出，这个算法适合存活对象多的，回收对象少的情况。</p>
+<h4 id="4-分代回收算法"><a href="#4-分代回收算法" class="headerlink" title="4.分代回收算法"></a>4.分代回收算法</h4><p>鉴于以上三种算法都存在自己的缺陷，然后大神们就提出了根据不同对象的不同特性，使用不同的算法进行处理，所以严格来讲并不是一个新的算法，而是属于一种算法整合方案，我们知道：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.复制算法适用于存活对象少，回收对象多的情况</div><div class="line"></div><div class="line">2.标记整理算法适用于存活对象多，回收对象少的情况</div></pre></td></tr></table></figure>
+<p>这两种算法刚好互补，因此只要将这两个算法作用于不同特性的对象，就完美了。。</p>
+<p>那么我们就应该知道，哪个区域的对象是什么样的特性，根据我的上一篇的内存分配模型，堆内存中的新生代有很多的垃圾需要回收，老年代有很少的垃圾需要回收，那么刚好能够根据这个特点使用不同的算法进行回收，具体使用的方式为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.对于新生代区域采用复制算法，因为新生代中每次垃圾回收都要回收大部分对象，那么也就意味着复制次数比较少，因此采用复制算法更高效</div><div class="line"></div><div class="line">2.而老年代区域的特点是每次回收都只能回收很少的对象，一般使用的是标记整理或者标记清除算法</div></pre></td></tr></table></figure>
+<p>通过以上的方式，使得GC的整个过程达到了最高效的状态。</p>
+<p>这里需要注意的是分代回收算法的中的复制算法的使用。</p>
+<p>之前说的复制算法是将内存均分为二，但是在分代回收中，并不是这样，而是根据Eden:Survivor A:Survivor B= 8:1:1,具体的过程是(简化版)：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">1.新创建一个对象，默认是分在Eden区域，当Eden区域内存不够的时候，会触发一次Min</div><div class="line">or GC(新生代回收)，这次回收将存活的对象放到Survivor A区域，然后新的对象继续放在Eden区域</div><div class="line"></div><div class="line">2.再创建一个新的对象，要是Eden区域又不够了，再次触发Minor GC，这个时候会把Eden区域的存活对象以及</div><div class="line">Survivor A区域的存活的对象移动到Survivor B区域，然后清空Eden区域以及Survivor A区域</div><div class="line"></div><div class="line">3.如果继续有新的对象创建，不断触发Minor GC，有些对象就会不断在Survivor A区域以及Survivor B区域</div><div class="line">来回移动，但移动次数超过15次后，这些对象就会被移动到老年代区域</div><div class="line"></div><div class="line">4.如果新的对象在Minor GC后还是放不下，就直接放到老年代</div><div class="line"></div><div class="line">5.如果Survivor区域放不下该对象，这直接放到老年代</div><div class="line"></div><div class="line">6.如果老年代也满了，就会触发一次Full GC(major gc)</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="干货总结"><a href="#干货总结" class="headerlink" title="干货总结"></a><strong>干货总结</strong></h1><p>通过以上的讲述，我们了解了什么是GC，它的优缺点，它是如何工作的，整过过程下来，脑子里也算有了一个GC的概率模型在了。</p>
+<p>本文参考了以下博客：</p>
+<p><a href="http://blog.csdn.net/omnispace/article/details/50991489" target="_blank" rel="external">理解Android Java垃圾回收机制</a></p>
+<p><a href="http://www.jianshu.com/p/e598ac3fd1c5" target="_blank" rel="external">JAVA垃圾回收机制</a></p>
+<p>掌握好GC策略和原理，对于我们编码来说能够避免一些不必要的内存泄露，我们使用Java语言进行开发，不要一味的去追求各种牛逼的框架或者酷炫的业务实现，有的时候，还是需要我们沉下心来，好好了解一下底层系统的一些机制，个人觉得还是很有必要的。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"># Android</a>
+          
+            <a href="/tags/进阶/" rel="tag"># 进阶</a>
+          
+            <a href="/tags/性能调优/" rel="tag"># 性能调优</a>
+          
+            <a href="/tags/JVM/" rel="tag"># JVM</a>
+          
+            <a href="/tags/内存分配/" rel="tag"># 内存分配</a>
+          
+            <a href="/tags/JVM内存模型/" rel="tag"># JVM内存模型</a>
+          
+            <a href="/tags/java内存分配/" rel="tag"># java内存分配</a>
+          
+            <a href="/tags/内存/" rel="tag"># 内存</a>
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/内存回收/" rel="tag"># 内存回收</a>
+          
+            <a href="/tags/GC/" rel="tag"># GC</a>
+          
+            <a href="/tags/回收算法/" rel="tag"># 回收算法</a>
+          
+            <a href="/tags/引用基数/" rel="tag"># 引用基数</a>
+          
+            <a href="/tags/可达性分析/" rel="tag"># 可达性分析</a>
+          
+            <a href="/tags/标记/" rel="tag"># 标记</a>
+          
+            <a href="/tags/整理/" rel="tag"># 整理</a>
+          
+            <a href="/tags/复制/" rel="tag"># 复制</a>
+          
+            <a href="/tags/分代回收/" rel="tag"># 分代回收</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/11/Android性能调优篇之探索JVM内存分配/" rel="next" title="Android性能调优篇之探索JVM内存分配">
+                <i class="fa fa-chevron-left"></i> Android性能调优篇之探索JVM内存分配
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/15/Android性能调优篇之内存泄露/" rel="prev" title="Android性能调优篇之内存泄露">
+                Android性能调优篇之内存泄露 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.png"
+               alt="senduo" />
+          <p class="site-author-name" itemprop="name">senduo</p>
+           
+              <p class="site-description motion-element" itemprop="description">越努力越幸运</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">67</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ouyangshengduo" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#开篇废话"><span class="nav-number">1.</span> <span class="nav-text">开篇废话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#技术详情"><span class="nav-number">2.</span> <span class="nav-text">技术详情</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-什么是垃圾回收（GC）"><span class="nav-number">2.1.</span> <span class="nav-text">1.什么是垃圾回收（GC）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-垃圾回收机制对于我们来说有什么好处？又会带来哪些坑？"><span class="nav-number">2.2.</span> <span class="nav-text">2.垃圾回收机制对于我们来说有什么好处？又会带来哪些坑？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-垃圾回收它是如何工作的？"><span class="nav-number">2.3.</span> <span class="nav-text">3.垃圾回收它是如何工作的？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-可回收对象的判定"><span class="nav-number">2.3.1.</span> <span class="nav-text">1.可回收对象的判定</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-引用计数算法"><span class="nav-number">2.3.1.1.</span> <span class="nav-text">1.引用计数算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-GC-Root可达性分析算法"><span class="nav-number">2.3.1.2.</span> <span class="nav-text">2.GC Root可达性分析算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-通过某些算法回收垃圾内存"><span class="nav-number">2.3.2.</span> <span class="nav-text">2.通过某些算法回收垃圾内存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-标记清除算法-Mark-Sweep"><span class="nav-number">2.3.2.1.</span> <span class="nav-text">1.标记清除算法(Mark-Sweep)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-复制算法-Copying"><span class="nav-number">2.3.2.2.</span> <span class="nav-text">2.复制算法(Copying)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-标记整理算法-Mark-Compact"><span class="nav-number">2.3.2.3.</span> <span class="nav-text">3.标记整理算法(Mark-Compact)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-分代回收算法"><span class="nav-number">2.3.2.4.</span> <span class="nav-text">4.分代回收算法</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#干货总结"><span class="nav-number">3.</span> <span class="nav-text">干货总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">senduo</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("Y5sgWBR0QVcvuVWG3MkOeH0P-gzGzoHsz", "M5ELqx0yvwMVH7iAMMPqfIg4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

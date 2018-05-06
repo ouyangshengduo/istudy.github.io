@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android,进阶,性能调优,hierarchy view,UI布局优化,渲染,ViewStub,include,merge,lint,Genymotion,Android device monitor," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="开篇废话根据第一篇的规划，趁着周日的空闲时间，认真查阅了UI布局优化的一些知识，在这里总结一下，写这篇文章的最终目的是希望能给从用户最直观的体验部分进行有效的UI优化，使用的方法是从实际操作到原理解说，做到知其然，且知其所以然。  技术详情一、Android UI 渲染简述我们首先需要知道一个大概是生物领域的一个知识点： 12人眼与大脑之间的协作无法感知超过60fps的画面更新。 那么对于这个60">
+<meta name="keywords" content="Android,进阶,性能调优,hierarchy view,UI布局优化,渲染,ViewStub,include,merge,lint,Genymotion,Android device monitor">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android性能调优篇之UI布局优化">
+<meta property="og:url" content="http://www.senduo.site/2017/08/02/Android性能调优篇之UI布局优化/index.html">
+<meta property="og:site_name" content="一起玩编程">
+<meta property="og:description" content="开篇废话根据第一篇的规划，趁着周日的空闲时间，认真查阅了UI布局优化的一些知识，在这里总结一下，写这篇文章的最终目的是希望能给从用户最直观的体验部分进行有效的UI优化，使用的方法是从实际操作到原理解说，做到知其然，且知其所以然。  技术详情一、Android UI 渲染简述我们首先需要知道一个大概是生物领域的一个知识点： 12人眼与大脑之间的协作无法感知超过60fps的画面更新。 那么对于这个60">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/xuanran.png">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/xuanran_timeout.png">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/linearLayout_viewer.png">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/relativelayout_viewer.png">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/color_overdraw.png">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/debug_overdraw.jpg">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/open_overdraw.png">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/test1_overdraw.jpg">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/test2_overdraw.jpg">
+<meta property="og:image" content="http://www.senduo.site/images/layout_youhua/test3_overdraw.jpg">
+<meta property="og:updated_time" content="2017-08-03T02:30:37.497Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android性能调优篇之UI布局优化">
+<meta name="twitter:description" content="开篇废话根据第一篇的规划，趁着周日的空闲时间，认真查阅了UI布局优化的一些知识，在这里总结一下，写这篇文章的最终目的是希望能给从用户最直观的体验部分进行有效的UI优化，使用的方法是从实际操作到原理解说，做到知其然，且知其所以然。  技术详情一、Android UI 渲染简述我们首先需要知道一个大概是生物领域的一个知识点： 12人眼与大脑之间的协作无法感知超过60fps的画面更新。 那么对于这个60">
+<meta name="twitter:image" content="http://www.senduo.site/images/layout_youhua/xuanran.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.senduo.site/2017/08/02/Android性能调优篇之UI布局优化/"/>
+
+
+
+
+
+  <title>Android性能调优篇之UI布局优化 | 一起玩编程</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?951cfb8fd64e7563e9e63d6e46c67845";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">一起玩编程</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://www.senduo.site/2017/08/02/Android性能调优篇之UI布局优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="senduo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="一起玩编程">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android性能调优篇之UI布局优化</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-02T15:40:54+08:00">
+                2017-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/a-p-opt/" itemprop="url" rel="index">
+                    <span itemprop="name">Android性能调优</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/08/02/Android性能调优篇之UI布局优化/" class="leancloud_visitors" data-flag-title="Android性能调优篇之UI布局优化">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开篇废话"><a href="#开篇废话" class="headerlink" title="开篇废话"></a><strong>开篇废话</strong></h1><p>根据第一篇的规划，趁着周日的空闲时间，认真查阅了UI布局优化的一些知识，在这里总结一下，写这篇文章的最终目的是希望能给从用户最直观的体验部分进行有效的UI优化，使用的方法是从实际操作到原理解说，做到知其然，且知其所以然。</p>
+<hr>
+<h1 id="技术详情"><a href="#技术详情" class="headerlink" title="技术详情"></a><strong>技术详情</strong></h1><h2 id="一、Android-UI-渲染简述"><a href="#一、Android-UI-渲染简述" class="headerlink" title="一、Android UI 渲染简述"></a><strong>一、Android UI 渲染简述</strong></h2><p>我们首先需要知道一个大概是生物领域的一个知识点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">人眼与大脑之间的协作无法感知超过60fps的画面更新。</div></pre></td></tr></table></figure>
+<p>那么对于这个60fps的值是个什么概念呢？举几个例子说明一下，如果我们自己用手快速翻书，纸张哗哗哗的在眼前略过，那个帧率的值大概是12fps,电影胶卷使用的帧率大概是24fps,因为24fps的值可以使人眼感知的是连续性的运动，其实再大点也是可以，但意味着增加了人工成本，需要更多的帧，所以24帧能够做到最少的费用支出（好像有点跑偏了）。所以，我们app的性能标准就是保证60fps这个值，也就代表每一帧，只有1000/60 = 16ms的时间来处理任务。</p>
+<p>Android系统每一次的渲染都是通过底层一个VSYNC信号来触发UI的渲染，间隔时间为16ms,那么我们应该了解为什么需要有UI布局优化这个概念。</p>
+<p><img src="/images/layout_youhua/xuanran.png" alt="image"></p>
+<p>我们在使用app的时候，会发现有多的时候，界面会出现卡顿不流畅的情况，是因为当前这个界面UI的处理超过了16ms,则会占用下一个16ms,这样就导致16ms * 2 都是显示的同一帧，也就是我看到的“卡了”</p>
+<p><img src="/images/layout_youhua/xuanran_timeout.png" alt="image"></p>
+<h2 id="二、UI布局优化实操"><a href="#二、UI布局优化实操" class="headerlink" title="二、UI布局优化实操"></a><strong>二、UI布局优化实操</strong></h2><p>了解Android的渲染机制后，下面我们该来分析分析我们的app为什么会出现超过16ms的重绘时间的，大致有以下几点原因：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">1.布局层次不合理</div><div class="line">2.布局存在过度绘制</div></pre></td></tr></table></figure>
+<p>下面针对以上原因，给出相应的解决方案</p>
+<h3 id="1-使用Hierarchy-Viewer工具检测"><a href="#1-使用Hierarchy-Viewer工具检测" class="headerlink" title="1.使用Hierarchy Viewer工具检测"></a><strong>1.使用Hierarchy Viewer工具检测</strong></h3><p>对于Hierarchy Viewer工具的使用，可以查看我之前的一篇文章：</p>
+<p><a href="http://www.jianshu.com/p/5c7749c38115" target="_blank" rel="external">Android性能调优篇之Hierarchy Viewer工具的使用</a></p>
+<p>优化案例：</p>
+<p>使用LinearLayout嵌套布局版本(嵌套了一层LinearLayout)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</div><div class="line">&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">    android:layout_width=&quot;match_parent&quot;</div><div class="line">    android:layout_height=&quot;wrap_content&quot;</div><div class="line">    android:orientation=&quot;horizontal&quot;&gt;</div><div class="line"></div><div class="line">    &lt;ImageView</div><div class="line">        android:id=&quot;@+id/chat_author_avatar1&quot;</div><div class="line">        android:layout_width=&quot;@dimen/left_width_height&quot;</div><div class="line">        android:layout_height=&quot;@dimen/left_width_height&quot;</div><div class="line">        android:layout_margin=&quot;@dimen/around_margin&quot;</div><div class="line">        android:src=&quot;@mipmap/ic_launcher&quot;/&gt;</div><div class="line"></div><div class="line">    &lt;LinearLayout</div><div class="line">        android:layout_width=&quot;match_parent&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:orientation=&quot;vertical&quot;&gt;</div><div class="line"></div><div class="line">        &lt;TextView</div><div class="line">            android:layout_width=&quot;match_parent&quot;</div><div class="line">            android:layout_height=&quot;wrap_content&quot;</div><div class="line">            android:text=&quot;@string/up_text&quot; /&gt;</div><div class="line"></div><div class="line">        &lt;TextView</div><div class="line">            android:layout_width=&quot;match_parent&quot;</div><div class="line">            android:layout_height=&quot;wrap_content&quot;</div><div class="line">            android:text=&quot;@string/down_text&quot;/&gt;</div><div class="line">    &lt;/LinearLayout&gt;</div><div class="line"></div><div class="line">&lt;/LinearLayout&gt;</div></pre></td></tr></table></figure>
+<p>使用Hierarchy Viewer工具查看的结果是：</p>
+<p><img src="/images/layout_youhua/linearLayout_viewer.png" alt="image"></p>
+<p>使用RelativeLayout优化布局为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</div><div class="line">&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">    android:orientation=&quot;horizontal&quot;</div><div class="line">    android:layout_width=&quot;match_parent&quot;</div><div class="line">    android:layout_height=&quot;wrap_content&quot;&gt;</div><div class="line"></div><div class="line">    &lt;ImageView</div><div class="line">        android:id=&quot;@+id/left_image&quot;</div><div class="line">        android:layout_width=&quot;@dimen/left_width_height&quot;</div><div class="line">        android:layout_height=&quot;@dimen/left_width_height&quot;</div><div class="line">        android:layout_margin=&quot;@dimen/around_margin&quot;</div><div class="line">        android:src=&quot;@mipmap/ic_launcher&quot;/&gt;</div><div class="line"></div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:id=&quot;@+id/tvUpText&quot;</div><div class="line">        android:layout_width=&quot;match_parent&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:layout_toRightOf=&quot;@id/left_image&quot;</div><div class="line">        android:text=&quot;@string/up_text&quot; /&gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:id=&quot;@+id/tvDownText&quot;</div><div class="line">        android:layout_width=&quot;match_parent&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:layout_below=&quot;@id/tvUpText&quot;</div><div class="line">        android:layout_toRightOf=&quot;@id/left_image&quot;</div><div class="line">        android:text=&quot;@string/down_text&quot; /&gt;</div><div class="line">&lt;/RelativeLayout&gt;</div></pre></td></tr></table></figure>
+<p>然后使用Hierarchy Viewer工具查看结果为:</p>
+<p><img src="/images/layout_youhua/relativelayout_viewer.png" alt="image"></p>
+<p>通过两次的结果截图中的有色灯（三个圈圈分别表示measure 、layout、draw的速度）来看，红色（红色的指示灯能够提供给我们一些依据）的已经没有了。一般我们布局编辑按以下规则进行编码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">1.尽量多使用 ConstraintLayout、RelativeLayout、LinearLayout</div><div class="line">2.尽量使用 ConstraintLayout</div><div class="line">3.在布局的层级相同的情况下，使用 LinearLayout 代替 RelativeLayout</div><div class="line">4.在布局复杂或者层级过深的时候，使用 RelativeLayout 代替 LinearLayout 使界面层级扁平化，降低层级</div></pre></td></tr></table></figure>
+<p>另外，关于app界面层级的优化，Android Studio给我们提供了一个很好的工具：Lint,通过Lint工具的分析功能，能够检测出一些布局方面的不足，然后方便我们进行优化定位，至于Lint工具的使用步骤，以后会单独生成一篇博客。这里先引用别人的博客：<a href="https://developer.android.com/studio/write/lint.html" target="_blank" rel="external">Improve Your Code with Lint</a></p>
+<h3 id="2-使用include-和merge标签减少复用布局而产生的布局嵌套，使用ViewStub懒加载减少渲染元素"><a href="#2-使用include-和merge标签减少复用布局而产生的布局嵌套，使用ViewStub懒加载减少渲染元素" class="headerlink" title="2.使用include 和merge标签减少复用布局而产生的布局嵌套，使用ViewStub懒加载减少渲染元素"></a><strong>2.使用include 和merge标签减少复用布局而产生的布局嵌套，使用ViewStub懒加载减少渲染元素</strong></h3><p>布局复用的步骤大致为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.创建一个正常的可用布局layout文件A_layout.xml</div><div class="line">2.在需要添加复用布局(A_layout.xml)的当前布局内B_layout.xml，使用include标签</div><div class="line">3.将A_layout.xml的布局文件中的Root View 替换成merge标签，从而减少布局嵌套</div></pre></td></tr></table></figure>
+<p><strong>第一步：创建一个正常可用的布局layout文件，命名为A_layout.xml</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">    android:layout_width=&quot;match_parent&quot;</div><div class="line">    android:layout_height=&quot;match_parent&quot;</div><div class="line">    android:orientation=&quot;vetical&quot; &gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;张三&quot; /&gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;李四&quot; /&gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;王五&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/LinearLayout&gt;</div></pre></td></tr></table></figure>
+<p><strong>第二步：使用include标签把复用布局添加到实际需要的布局中（B_layout.xml）去</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">    android:layout_width=&quot;match_parent&quot;</div><div class="line">    android:layout_height=&quot;match_parent&quot;</div><div class="line">    android:orientation=&quot;horizontal&quot;&gt;</div><div class="line"></div><div class="line">    &lt;include layout=&quot;@layout/A_layout&quot;/&gt;</div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;@string/hello_world&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/LinearLayout&gt;</div></pre></td></tr></table></figure>
+<p><strong>第三步：把第一步中的布局文件中的LinearLayout替换成merge标签（当熟悉之后，可以直接创建一个merge标签的布局文件，第三步可以省略）</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;merge xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;张三&quot; /&gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;李四&quot; /&gt;</div><div class="line"></div><div class="line">    &lt;TextView</div><div class="line">        android:layout_width=&quot;wrap_content&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:text=&quot;王五&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/merge&gt;</div></pre></td></tr></table></figure>
+<p>系统在加载这个布局的时候，会自动忽略merge标签，从而将上述的三个TextView直接加入到第二步中的include标签的位置，而并没有增加布局层级</p>
+<h3 id="3-诊断过度绘制，优化过度绘制"><a href="#3-诊断过度绘制，优化过度绘制" class="headerlink" title="3.诊断过度绘制，优化过度绘制"></a><strong>3.诊断过度绘制，优化过度绘制</strong></h3><h4 id="诊断过度绘制"><a href="#诊断过度绘制" class="headerlink" title="诊断过度绘制"></a><strong>诊断过度绘制</strong></h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">过度绘制:屏幕上某一像素点在一帧中被重复绘制多次</div><div class="line"></div><div class="line"></div><div class="line">分类（根据层度）：</div><div class="line">无过度绘制（一个像素只被绘制了一次）      （原色）</div><div class="line">过度绘制x1（一个像素被绘制了两次）        （蓝色）</div><div class="line">过度绘制x2（一个像素被绘制了三次）        （绿色）</div><div class="line">过度绘制x3（一个像素被绘制了四次）        （粉色）</div><div class="line">过度绘制x4+（一个像素被绘制了五次以上）   （红色）</div></pre></td></tr></table></figure>
+<p><img src="/images/layout_youhua/color_overdraw.png" alt="image"></p>
+<p>接着 我们一起来看一下，如何查看我们的App过度绘制的情况</p>
+<p>第一种方案：adb命令行的方式:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">打开调试GPU过度绘制</div><div class="line">adb shell setprop debug.hwui.overdraw show</div><div class="line"></div><div class="line">关闭调式GPU过度绘制</div><div class="line">adb shell setprop debug.hwui.overdraw false</div></pre></td></tr></table></figure>
+<p>第二种方案：我们的Android调试机中的开发者选项中开启【调试GPU过度绘制】</p>
+<p>进入我们的调试机器饿开发者选项界面中，往下拉会看到：</p>
+<p><img src="/images/layout_youhua/debug_overdraw.jpg" alt="image"></p>
+<p>点击后，选择【显示过度绘制区域】</p>
+<p><img src="/images/layout_youhua/open_overdraw.png" alt="image"></p>
+<p>如果发现我们的app上深红色的色块比较多，那么可能就要注意了，需要进行优化了。</p>
+<h4 id="优化过度绘制"><a href="#优化过度绘制" class="headerlink" title="优化过度绘制"></a><strong>优化过度绘制</strong></h4><h5 id="1-移除不必要的background"><a href="#1-移除不必要的background" class="headerlink" title="1. 移除不必要的background"></a><strong>1. 移除不必要的background</strong></h5><p>我们首先根据GPU过度绘制定位到需要优化的布局位置：</p>
+<p><img src="/images/layout_youhua/test1_overdraw.jpg" alt="image"></p>
+<p>然后定位到代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</div><div class="line">&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">    android:layout_width=&quot;match_parent&quot;</div><div class="line">    android:layout_height=&quot;wrap_content&quot;</div><div class="line">    android:background=&quot;@android:color/white&quot;</div><div class="line">    android:orientation=&quot;horizontal&quot;&gt;</div><div class="line"></div><div class="line">    &lt;LinearLayout</div><div class="line">        android:layout_width=&quot;match_parent&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line">        android:background=&quot;@android:color/white&quot;</div><div class="line">        android:orientation=&quot;horizontal&quot;&gt;</div><div class="line">        &lt;ImageView</div><div class="line">            android:id=&quot;@+id/chat_author_avatar1&quot;</div><div class="line">            android:layout_width=&quot;@dimen/left_width_height&quot;</div><div class="line">            android:layout_height=&quot;@dimen/left_width_height&quot;</div><div class="line">            android:layout_margin=&quot;@dimen/around_margin&quot;</div><div class="line">            android:src=&quot;@mipmap/ic_launcher&quot;/&gt;</div><div class="line"></div><div class="line">        &lt;LinearLayout</div><div class="line">            android:layout_width=&quot;match_parent&quot;</div><div class="line">            android:layout_height=&quot;wrap_content&quot;</div><div class="line">            android:background=&quot;@android:color/white&quot;</div><div class="line">            android:orientation=&quot;vertical&quot;&gt;</div><div class="line"></div><div class="line">            &lt;TextView</div><div class="line">                android:layout_width=&quot;match_parent&quot;</div><div class="line">                android:layout_height=&quot;wrap_content&quot;</div><div class="line">                android:background=&quot;@android:color/white&quot;</div><div class="line">                android:text=&quot;@string/up_text&quot; /&gt;</div><div class="line"></div><div class="line">            &lt;TextView</div><div class="line">                android:layout_width=&quot;match_parent&quot;</div><div class="line">                android:layout_height=&quot;wrap_content&quot;</div><div class="line">                android:background=&quot;@android:color/white&quot;</div><div class="line">                android:text=&quot;@string/down_text&quot;/&gt;</div><div class="line">        &lt;/LinearLayout&gt;</div><div class="line">    &lt;/LinearLayout&gt;</div><div class="line"></div><div class="line">&lt;/LinearLayout&gt;</div></pre></td></tr></table></figure>
+<p>我们发现，不居中确实出现了好多次的backgound的配置：<br><img src="/images/layout_youhua/test2_overdraw.jpg" alt="image"></p>
+<p>所以移除一些不必要的background</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</div><div class="line">&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">    android:layout_width=&quot;match_parent&quot;</div><div class="line">    android:layout_height=&quot;wrap_content&quot;</div><div class="line">    android:orientation=&quot;horizontal&quot;&gt;</div><div class="line"></div><div class="line">    &lt;ImageView</div><div class="line">        android:id=&quot;@+id/chat_author_avatar1&quot;</div><div class="line">        android:layout_width=&quot;@dimen/left_width_height&quot;</div><div class="line">        android:layout_height=&quot;@dimen/left_width_height&quot;</div><div class="line">        android:layout_margin=&quot;@dimen/around_margin&quot;</div><div class="line">        android:src=&quot;@mipmap/ic_launcher&quot;/&gt;</div><div class="line"></div><div class="line">    &lt;LinearLayout</div><div class="line">        android:layout_width=&quot;match_parent&quot;</div><div class="line">        android:layout_height=&quot;wrap_content&quot;</div><div class="line"></div><div class="line">        android:orientation=&quot;vertical&quot;&gt;</div><div class="line"></div><div class="line">        &lt;TextView</div><div class="line">            android:layout_width=&quot;match_parent&quot;</div><div class="line">            android:layout_height=&quot;wrap_content&quot;</div><div class="line">            android:text=&quot;@string/up_text&quot; /&gt;</div><div class="line"></div><div class="line">        &lt;TextView</div><div class="line">            android:layout_width=&quot;match_parent&quot;</div><div class="line">            android:layout_height=&quot;wrap_content&quot;</div><div class="line">            android:text=&quot;@string/down_text&quot;/&gt;</div><div class="line">    &lt;/LinearLayout&gt;</div><div class="line"></div><div class="line">&lt;/LinearLayout&gt;</div></pre></td></tr></table></figure>
+<p>运行之后为：<br><img src="/images/layout_youhua/test3_overdraw.jpg" alt="image"></p>
+<p>明显有改善了，所以在我们实际生产中，需要非常有耐心的去不断诊断，不断去调试，有些时候我们使用ImageView的时候，可能会给它设置一个background，在代码中，还有可能给它设了一个imageDrawable,从而发生过度绘制的情况，切记切记。<br>解决方案是把背景图和真正加载的图片都通过imageDrawable方法进行设置。</p>
+<h5 id="2-clipRect和clipPath方法的妙用"><a href="#2-clipRect和clipPath方法的妙用" class="headerlink" title="2. clipRect和clipPath方法的妙用"></a><strong>2. clipRect和clipPath方法的妙用</strong></h5><p>clipRect的功能可以理解为在一个大的画布中，用一些大小可变的矩形一个一个来裁切，在某一个矩形内，绘制想要绘制的图形，超出的不进行绘制，当我们的app这样进行写自定义View的时候，可以避免view与view之间的叠加，从而产生同一个像素点被绘制多次的情况，原理就是这样，贴一个Hongyang大神的重写onDraw方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">protected void onDraw(Canvas canvas)</div><div class="line">&#123;</div><div class="line"></div><div class="line">    super.onDraw(canvas);</div><div class="line"></div><div class="line">    canvas.save();</div><div class="line">    canvas.translate(20, 120);</div><div class="line">    for (int i = 0; i &lt; mCards.length; i++)</div><div class="line">    &#123;</div><div class="line">        canvas.translate(120, 0);</div><div class="line">        canvas.save();</div><div class="line">        if (i &lt; mCards.length - 1)</div><div class="line">        &#123;</div><div class="line">            canvas.clipRect(0, 0, 120, mCards[i].getHeight());</div><div class="line">        &#125;</div><div class="line">        canvas.drawBitmap(mCards[i], 0, 0, null);</div><div class="line">        canvas.restore();</div><div class="line">    &#125;</div><div class="line">    canvas.restore();</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="干货总结"><a href="#干货总结" class="headerlink" title="干货总结"></a><strong>干货总结</strong></h1><p>文章的内容参考了Hongyang大神的博客：<a href="http://blog.csdn.net/lmj623565791/article/details/45556391/" target="_blank" rel="external">Android UI性能优化实战 识别绘制中的性能问题</a></p>
+<p>关于UI布局优化的内容，其实存在很多细节，更多的情况，还是得依靠我们平时对于UI布局优化的积累与经验去进行优化。再次总结几点经验：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">1.将可重复使用的布局通过include标签与merge标签搭配进行使用</div><div class="line"></div><div class="line">2.尽量少添加不必要的背景，减少过度绘制</div><div class="line"></div><div class="line">3.布局能扁平化的扁平化，尽量不要增加布局层级</div><div class="line"></div><div class="line">4.适当的时侯某些控件使用懒加载ViewStub,但需要牢记它的坑</div><div class="line"></div><div class="line">5.使用Hierarchy View 工具或者Lint工具来进行app的检测</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"># Android</a>
+          
+            <a href="/tags/进阶/" rel="tag"># 进阶</a>
+          
+            <a href="/tags/性能调优/" rel="tag"># 性能调优</a>
+          
+            <a href="/tags/hierarchy-view/" rel="tag"># hierarchy view</a>
+          
+            <a href="/tags/UI布局优化/" rel="tag"># UI布局优化</a>
+          
+            <a href="/tags/渲染/" rel="tag"># 渲染</a>
+          
+            <a href="/tags/ViewStub/" rel="tag"># ViewStub</a>
+          
+            <a href="/tags/include/" rel="tag"># include</a>
+          
+            <a href="/tags/merge/" rel="tag"># merge</a>
+          
+            <a href="/tags/lint/" rel="tag"># lint</a>
+          
+            <a href="/tags/Genymotion/" rel="tag"># Genymotion</a>
+          
+            <a href="/tags/Android-device-monitor/" rel="tag"># Android device monitor</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/31/Android性能调优篇之Hierarchy-Viewer工具的使用/" rel="next" title="Android性能调优篇之Hierarchy Viewer工具的使用">
+                <i class="fa fa-chevron-left"></i> Android性能调优篇之Hierarchy Viewer工具的使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/11/Android性能调优篇之探索JVM内存分配/" rel="prev" title="Android性能调优篇之探索JVM内存分配">
+                Android性能调优篇之探索JVM内存分配 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.png"
+               alt="senduo" />
+          <p class="site-author-name" itemprop="name">senduo</p>
+           
+              <p class="site-description motion-element" itemprop="description">越努力越幸运</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">67</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ouyangshengduo" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#开篇废话"><span class="nav-number">1.</span> <span class="nav-text">开篇废话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#技术详情"><span class="nav-number">2.</span> <span class="nav-text">技术详情</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、Android-UI-渲染简述"><span class="nav-number">2.1.</span> <span class="nav-text">一、Android UI 渲染简述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、UI布局优化实操"><span class="nav-number">2.2.</span> <span class="nav-text">二、UI布局优化实操</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-使用Hierarchy-Viewer工具检测"><span class="nav-number">2.2.1.</span> <span class="nav-text">1.使用Hierarchy Viewer工具检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-使用include-和merge标签减少复用布局而产生的布局嵌套，使用ViewStub懒加载减少渲染元素"><span class="nav-number">2.2.2.</span> <span class="nav-text">2.使用include 和merge标签减少复用布局而产生的布局嵌套，使用ViewStub懒加载减少渲染元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-诊断过度绘制，优化过度绘制"><span class="nav-number">2.2.3.</span> <span class="nav-text">3.诊断过度绘制，优化过度绘制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#诊断过度绘制"><span class="nav-number">2.2.3.1.</span> <span class="nav-text">诊断过度绘制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优化过度绘制"><span class="nav-number">2.2.3.2.</span> <span class="nav-text">优化过度绘制</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-移除不必要的background"><span class="nav-number">2.2.3.2.1.</span> <span class="nav-text">1. 移除不必要的background</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-clipRect和clipPath方法的妙用"><span class="nav-number">2.2.3.2.2.</span> <span class="nav-text">2. clipRect和clipPath方法的妙用</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#干货总结"><span class="nav-number">3.</span> <span class="nav-text">干货总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">senduo</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("Y5sgWBR0QVcvuVWG3MkOeH0P-gzGzoHsz", "M5ELqx0yvwMVH7iAMMPqfIg4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android,进阶,性能调优,JVM,内存泄露,内存分配,JVM内存模型,java内存分配,内存溢出,内存抖动,图片压缩,inBitmap,inSampleSize,多进程,listview,LRU," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="开篇废话上一篇我们了解了Android里面相关的内存泄露以及相应的处理方案，这一篇，接着上一篇的内存泄露的内容，讲一下Android当中的内存溢出。 内存溢出与内存泄露，很多开发人员都容易产生混淆，有可能是因为这两个概念有点关系，又因为名称上也不太好区分吧。不过，我们依然要清楚，内存溢出（Out Of Memory Error） 与 内存泄露 （Memory Leak）还是有质的区别的。都我们的A">
+<meta name="keywords" content="Android,进阶,性能调优,JVM,内存泄露,内存分配,JVM内存模型,java内存分配,内存溢出,内存抖动,图片压缩,inBitmap,inSampleSize,多进程,listview,LRU">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android性能调优篇之内存溢出">
+<meta property="og:url" content="http://www.senduo.site/2017/08/16/Android性能调优篇之内存溢出/index.html">
+<meta property="og:site_name" content="一起玩编程">
+<meta property="og:description" content="开篇废话上一篇我们了解了Android里面相关的内存泄露以及相应的处理方案，这一篇，接着上一篇的内存泄露的内容，讲一下Android当中的内存溢出。 内存溢出与内存泄露，很多开发人员都容易产生混淆，有可能是因为这两个概念有点关系，又因为名称上也不太好区分吧。不过，我们依然要清楚，内存溢出（Out Of Memory Error） 与 内存泄露 （Memory Leak）还是有质的区别的。都我们的A">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://i.imgur.com/vdiU7ft.png">
+<meta property="og:updated_time" content="2017-08-16T15:19:08.316Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android性能调优篇之内存溢出">
+<meta name="twitter:description" content="开篇废话上一篇我们了解了Android里面相关的内存泄露以及相应的处理方案，这一篇，接着上一篇的内存泄露的内容，讲一下Android当中的内存溢出。 内存溢出与内存泄露，很多开发人员都容易产生混淆，有可能是因为这两个概念有点关系，又因为名称上也不太好区分吧。不过，我们依然要清楚，内存溢出（Out Of Memory Error） 与 内存泄露 （Memory Leak）还是有质的区别的。都我们的A">
+<meta name="twitter:image" content="http://i.imgur.com/vdiU7ft.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.senduo.site/2017/08/16/Android性能调优篇之内存溢出/"/>
+
+
+
+
+
+  <title>Android性能调优篇之内存溢出 | 一起玩编程</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?951cfb8fd64e7563e9e63d6e46c67845";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">一起玩编程</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://www.senduo.site/2017/08/16/Android性能调优篇之内存溢出/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="senduo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="一起玩编程">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android性能调优篇之内存溢出</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-16T23:16:49+08:00">
+                2017-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/a-p-opt/" itemprop="url" rel="index">
+                    <span itemprop="name">Android性能调优</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/08/16/Android性能调优篇之内存溢出/" class="leancloud_visitors" data-flag-title="Android性能调优篇之内存溢出">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开篇废话"><a href="#开篇废话" class="headerlink" title="开篇废话"></a><strong>开篇废话</strong></h1><p>上一篇我们了解了Android里面相关的内存泄露以及相应的处理方案，这一篇，接着上一篇的内存泄露的内容，讲一下Android当中的内存溢出。</p>
+<p>内存溢出与内存泄露，很多开发人员都容易产生混淆，有可能是因为这两个概念有点关系，又因为名称上也不太好区分吧。不过，我们依然要清楚，内存溢出（Out Of Memory Error） 与 内存泄露 （Memory Leak）还是有质的区别的。都我们的App多次出现内存泄露，可能就会导致内存溢出。</p>
+<p>但是，我们的App出现内存溢出，不一定就是因为内存泄露，因为本身Android系统分配给每一个的App的空间就是那么一点。</p>
+<p>另外，内存泄露也不一定就会出现内存溢出，因为还是泄露的速度比较慢，系统将进程杀死了，也就不会内存溢出咯，不过，发现内存泄露，我们还是要第一时间解决掉这个bug。</p>
+<hr>
+<h1 id="技术详情"><a href="#技术详情" class="headerlink" title="技术详情"></a><strong>技术详情</strong></h1><p>讲述逻辑如下：</p>
+<pre><code>1.什么是内存溢出
+
+2.有些内存里面容易混淆的概念
+
+3.如何解决内存溢出
+</code></pre><h2 id="1-什么是内存溢出"><a href="#1-什么是内存溢出" class="headerlink" title="1.什么是内存溢出"></a>1.什么是内存溢出</h2><p>内存溢出，OOM(Out Of Memory),表示当前占用的内存加上我们申请的内存资源超过了Dalvik虚拟机的最大内存限制就会抛出的Out Of Memory异常。大部分的OOM的问题，都会与Bitmap的加载有关系</p>
+<h2 id="2-内存里面容易混淆的一些概念"><a href="#2-内存里面容易混淆的一些概念" class="headerlink" title="2.内存里面容易混淆的一些概念"></a>2.内存里面容易混淆的一些概念</h2><p>主要有三个概念：</p>
+<pre><code>1.内存溢出
+
+2.内存抖动
+
+3.内存泄露
+</code></pre><p>其中第一个内存溢出，就是刚刚讲的OOM,第三个内存泄露，可以查看我的上一篇文章。</p>
+<p>关于第二个内存抖动，出现的情况是，短时间内，大量的对象被创建，然后又马上被释放，瞬间产生的对象会严重占用内存区域，这个区域就是我们之前接触的那个年轻代区域，到达这个区域的阈值时就会触发minor gc,当出现频繁的minor gc的时候，就会出现内存抖动，我们能够通过我们的Android Studio的Memory Monitor能够非常直观的看到内存抖动</p>
+<p><img src="http://i.imgur.com/vdiU7ft.png" alt="内存抖动"></p>
+<p>出现内存抖动的现象，可根据当前app处理的实际业务结合Memory Monitor中的现象来进行判断，然后有针对性的进行优化。</p>
+<p>它们三者的重要等级分别：内存溢出 &gt; 内存泄露 &gt; 内存抖动</p>
+<p>内存溢出对我们的App来说，影响是非常大的，整得不好，就有可能导致程序闪退，无响应等现象，因此，我们一定要优先解决OOM的问题。</p>
+<h2 id="3-如何解决内存溢出"><a href="#3-如何解决内存溢出" class="headerlink" title="3.如何解决内存溢出"></a>3.如何解决内存溢出</h2><p>如何解决OOM，这个问题范围比较大，我这边大概从两个方面去讲述：</p>
+<pre><code>1.关于Bitmap的OOM
+
+2.除了Bitmap之外的OOM
+</code></pre><h3 id="3-1-关于Bitmap的OOM"><a href="#3-1-关于Bitmap的OOM" class="headerlink" title="3.1 关于Bitmap的OOM"></a>3.1 关于Bitmap的OOM</h3><p>关于Bitmap的OOM我们有几点需要注意的。</p>
+<h4 id="3-1-1-ImageView等控件图片的显示"><a href="#3-1-1-ImageView等控件图片的显示" class="headerlink" title="3.1.1 ImageView等控件图片的显示"></a>3.1.1 ImageView等控件图片的显示</h4><p>意思就是加载合适属性的图片，当我们有些场景是可以显示缩略图的时候，就不要调用网络请求加载大图，例如在ListView中，我们在上下滑动的时候，就不要去调用网络请求，当监听到滑动结束的时候，才去加载大图，以免上下滑动的时候产生卡顿现象。</p>
+<h4 id="3-1-2-及时释放内存"><a href="#3-1-2-及时释放内存" class="headerlink" title="3.1.2 及时释放内存"></a>3.1.2 及时释放内存</h4><p>我们知道，在Android系统中，本身就有自己的垃圾回收机制，系统会不定期进行垃圾回收的。但是，这个只是针对Java那一块的内存,但是我们需要知道Bitmap实例化的时候，是通过JNI的方式，所以还有一部分的内存是C那一块的，我们的GC没有办法回收，所以，我们在不用的时候，还是需要调用recycle()方法，源码里面，recycle()方法其实就是调用的JNI的函数，然后释放C那一块的内存。</p>
+<h4 id="3-1-3-把图片进行压缩"><a href="#3-1-3-把图片进行压缩" class="headerlink" title="3.1.3 把图片进行压缩"></a>3.1.3 把图片进行压缩</h4><p>我们在实际开发过程当中，可能因为业务需要，需要加载一张很大的图片，大到直接可以超过系统分配给我们App的内存大小，这样，就会直接导致内存溢出，那么，这个时候，我们就应当控制图片的大小，那么就应该将bitmap进行压缩了。</p>
+<p>下面大概讲一下对一张图片进行压缩的一个过程。</p>
+<p>第一步：计算实际采样率</p>
+<pre><code>/**
+ * 计算压缩比例值
+ * @param options             解析图片的配置信息
+ * @param reqWidth            所需图片压缩尺寸最小宽度
+ * @param reqHeight           所需图片压缩尺寸最小高度
+ * @return
+ */
+public static int calculateInSampleSize(BitmapFactory.Options options,
+         int reqWidth, int reqHeight) {
+   //保存图片原宽高值
+   final int height = options. outHeight;
+   final int width = options. outWidth;
+
+   //初始化压缩比例为1
+   int inSampleSize = 1;
+
+   //当图片宽高值任何一个大于所需压缩图片宽高值时,进入循环计算系统
+   if (height &gt; reqHeight || width &gt; reqWidth) {
+
+         final int halfHeight = height / 2;
+         final int halfWidth = width / 2;
+
+         //压缩比例值每次循环两倍增加,
+         //直到原图宽高值的一半除以压缩值后都~大于所需宽高值为止
+         while ((halfHeight / inSampleSize) &gt;= reqHeight
+                    &amp;&amp; (halfWidth / inSampleSize) &gt;= reqWidth) {
+              inSampleSize *= 2;
+        }
+   }
+   return inSampleSize;
+}
+</code></pre><p>第二步：根据得到的采样率对图片进行解析</p>
+<pre><code>/**
+ * 获取压缩后的图片
+ * @param res
+ * @param resId
+ * @param reqWidth            所需图片压缩尺寸最小宽度
+ * @param reqHeight           所需图片压缩尺寸最小高度
+ * @return
+ */
+public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+    int reqWidth, int reqHeight) {
+
+    //首先不加载图片,仅获取图片尺寸
+    final BitmapFactory.Options options = new BitmapFactory.Options();
+
+    //当inJustDecodeBounds设为true时,不会加载图片仅获取图片尺寸信息
+    options.inJustDecodeBounds = true;
+
+    //此时仅会将图片信息会保存至options对象内,decode方法不会返回bitmap对象
+    BitmapFactory.decodeResource(res, resId, options);
+
+    //计算压缩比例,如inSampleSize=4时,图片会压缩成原图的1/4
+    options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+    //当inJustDecodeBounds设为false时,BitmapFactory.decode...就会返回图片对象了
+    options. inJustDecodeBounds = false;
+
+    //利用计算的比例值获取压缩后的图片对象
+    return BitmapFactory.decodeResource(res, resId, options);
+}
+</code></pre><h4 id="3-1-4-使用Bitmap的高级属性inBitmap"><a href="#3-1-4-使用Bitmap的高级属性inBitmap" class="headerlink" title="3.1.4 使用Bitmap的高级属性inBitmap"></a>3.1.4 使用Bitmap的高级属性inBitmap</h4><p>Bitmap的inBitmap高级属性主要是值复用内存块，不需要在重新给新的bitmap对象申请一块新的内存，避免了一次内存的分配和回收，从而提供了我们程序运行的效率。</p>
+<p>不过这个属性还是有一些坑的，对于适配Android3.0以上 。而且，这个功能，google一直在优化当中，在Android4.4以前，只能复用相同大小的bitmap内存，而4.4之后，则只要比之前的内存小，就可以了。以下贴出inBitmap的简单使用方法：</p>
+<p>第一步：首先判断当前图片是否能够使用inBitmap</p>
+<pre><code>/**
+ * 判断是否能够使用inBigmap
+ * @param candidate         比较标准
+ * @param targetOptions        判断目标对象属性
+ * @return
+ */
+public static boolean canUseForInBitmap(
+    Bitmap candidate, BitmapFactory.Options targetOptions) {
+
+    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) {
+        // From Android 4.4 (KitKat) onward we can re-use
+        // if the byte size of the new bitmap is smaller than
+        // the reusable bitmap candidate
+        // allocation byte count.
+        int width = targetOptions.outWidth / targetOptions.inSampleSize;
+        int height =
+            targetOptions.outHeight / targetOptions.inSampleSize;
+        int byteCount = width * height
+            * getBytesPerPixel(candidate.getConfig());
+        return byteCount &lt;= candidate.getAllocationByteCount();
+    }
+
+    // On earlier versions,
+    // the dimensions must match exactly and the inSampleSize must be 1
+    return candidate.getWidth() == targetOptions.outWidth
+        &amp;&amp; candidate.getHeight() == targetOptions.outHeight
+        &amp;&amp; targetOptions.inSampleSize == 1;
+}
+</code></pre><p>第二步：从缓存里面拿出bitmap,将此Bitmap赋值给inBitmap。</p>
+<pre><code>/**
+ * 将Bitmap赋值给inBitmap
+ * @param options             图片的配置信息
+ * @param cache               图片缓存
+ */
+private static void addInBitmapOptions(BitmapFactory.Options options, ImageCache cache) {
+
+    //inBitmap only works with mutable bitmaps, so force the decoder to
+    //return mutable bitmaps.
+    options.inMutable = true;
+
+    if (cache != null) {
+        // Try to find a bitmap to use for inBitmap.
+        Bitmap inBitmap = cache.getBitmapFromReusableSet(options);
+
+        if (inBitmap != null) {
+            // If a suitable bitmap has been found,
+            // set it as the value of inBitmap.
+            options.inBitmap = inBitmap;
+        }
+    }
+}
+</code></pre><p>第三步：调用刚刚图片压缩时候的decode方法，把options参数传入</p>
+<h4 id="3-1-5-捕获异常"><a href="#3-1-5-捕获异常" class="headerlink" title="3.1.5 捕获异常"></a>3.1.5 捕获异常</h4><p>很多时候，当内存确实很吃紧的时候，难免还是会出现OOM，所以，根据经验之谈，我们在开发过程中，实例化Bitmap的时候，最好还是添加try catch，进行异常捕获。</p>
+<p>需要注意，平常的Exception异常是捕获不到OOM Erro的，因为OOM是一个错误，我们编码的时候需要捕获错误，具体给出以下示例代码：</p>
+<pre><code>public static Bitmap createBitmap(int width, int height, Bitmap.Config config) {  
+    Bitmap bitmap = null;  
+    try {  
+        bitmap = Bitmap.createBitmap(width, height, config);  
+    } catch (OutOfMemoryError e) {  
+        while(bitmap == null) {  
+            System.gc();  
+            System.runFinalization();  
+            bitmap = createBitmap(width, height, config);  
+        }  
+    }  
+} 
+</code></pre><h3 id="3-2-除了Bitmap之外的OOM"><a href="#3-2-除了Bitmap之外的OOM" class="headerlink" title="3.2 除了Bitmap之外的OOM"></a>3.2 除了Bitmap之外的OOM</h3><h4 id="3-2-1-listview"><a href="#3-2-1-listview" class="headerlink" title="3.2.1 listview"></a>3.2.1 listview</h4><p>这个listview确实提到了好多次，毕竟我们实际开发当中，用它来呈现一些数据确实的频率也蛮高，还是需要讲述一下。</p>
+<p>使用listview的时候，一定要记得复用convertView</p>
+<p>同时，在listview当中，如果需要显示大图的控件，记得使用LRU（最近最少使用，三级缓存）机制进行缓存图片</p>
+<h4 id="3-2-2-onDraw方法当中，尽量避免对象的创建"><a href="#3-2-2-onDraw方法当中，尽量避免对象的创建" class="headerlink" title="3.2.2 onDraw方法当中，尽量避免对象的创建"></a>3.2.2 onDraw方法当中，尽量避免对象的创建</h4><p>如果在onDraw方法中创建对象，会触发频繁的GC,也就是之前提到的内存抖动，当内存抖动积累到一定的程度，也会出现内存溢出。</p>
+<h4 id="3-2-3-使用多进程，一定要小心小心再小心"><a href="#3-2-3-使用多进程，一定要小心小心再小心" class="headerlink" title="3.2.3 使用多进程，一定要小心小心再小心"></a>3.2.3 使用多进程，一定要小心小心再小心</h4><p>我们有的时候需要将一些服务，或者主件放到另外一个进程去运行，例如一些定位，推送等，这样确实可以分担主进程的内存压力。</p>
+<p>但是，多进程中的一些通信真心没有那么简单。很多机制可能失效，从而影响业务的基本功能。可能会出现一些莫名其妙的crash.</p>
+<p>所以，如果我们的App实际业务没有达到一定程度，真心不要使用多进程。</p>
+<hr>
+<h1 id="干货总结"><a href="#干货总结" class="headerlink" title="干货总结"></a><strong>干货总结</strong></h1><p>此篇文章根据OOM是什么，了解一些容易混淆的概念，然后熟悉一些OOM的解决方案这个逻辑，再结合实际开发可能遇到的问题，讲述了内存溢出的相关知识。其实，大篇幅都是在讲述Bitmap的处理方案，因为，我们这个Bitmap确实在实际开发当中引发OOM的概率还是相当大的。</p>
+<p>希望通过以上的讲述，我们能够对于OOM有一个清晰的了解，从而根据我们实际开发当中自己的业务，进行OOM的优化。</p>
+<p>其实有的时候，我们在解决OOM的时候需要有一个权衡，因为如果考虑到了OOM的情况而频繁触发GC,可能会导致UI卡顿的现象，跟严重的可能出现ANR的问题，需要我们在实际开发过程中具体场景具体分析。</p>
+<p>好了，内存的泄露的知识就先更新到这了，如果觉得本篇文章对大家有益，<strong>请给予一个赞和喜欢</strong>，这样我才更有动力一直更新下去，如果和一起探讨的，可以关注一波。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"># Android</a>
+          
+            <a href="/tags/进阶/" rel="tag"># 进阶</a>
+          
+            <a href="/tags/性能调优/" rel="tag"># 性能调优</a>
+          
+            <a href="/tags/JVM/" rel="tag"># JVM</a>
+          
+            <a href="/tags/内存泄露/" rel="tag"># 内存泄露</a>
+          
+            <a href="/tags/内存分配/" rel="tag"># 内存分配</a>
+          
+            <a href="/tags/JVM内存模型/" rel="tag"># JVM内存模型</a>
+          
+            <a href="/tags/java内存分配/" rel="tag"># java内存分配</a>
+          
+            <a href="/tags/内存溢出/" rel="tag"># 内存溢出</a>
+          
+            <a href="/tags/内存抖动/" rel="tag"># 内存抖动</a>
+          
+            <a href="/tags/图片压缩/" rel="tag"># 图片压缩</a>
+          
+            <a href="/tags/inBitmap/" rel="tag"># inBitmap</a>
+          
+            <a href="/tags/inSampleSize/" rel="tag"># inSampleSize</a>
+          
+            <a href="/tags/多进程/" rel="tag"># 多进程</a>
+          
+            <a href="/tags/listview/" rel="tag"># listview</a>
+          
+            <a href="/tags/LRU/" rel="tag"># LRU</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/15/Android性能调优篇之内存泄露/" rel="next" title="Android性能调优篇之内存泄露">
+                <i class="fa fa-chevron-left"></i> Android性能调优篇之内存泄露
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/Android基础知识回顾之Activity/" rel="prev" title="Android基础知识回顾之Activity">
+                Android基础知识回顾之Activity <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.png"
+               alt="senduo" />
+          <p class="site-author-name" itemprop="name">senduo</p>
+           
+              <p class="site-description motion-element" itemprop="description">越努力越幸运</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">67</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ouyangshengduo" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#开篇废话"><span class="nav-number">1.</span> <span class="nav-text">开篇废话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#技术详情"><span class="nav-number">2.</span> <span class="nav-text">技术详情</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-什么是内存溢出"><span class="nav-number">2.1.</span> <span class="nav-text">1.什么是内存溢出</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-内存里面容易混淆的一些概念"><span class="nav-number">2.2.</span> <span class="nav-text">2.内存里面容易混淆的一些概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-如何解决内存溢出"><span class="nav-number">2.3.</span> <span class="nav-text">3.如何解决内存溢出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-关于Bitmap的OOM"><span class="nav-number">2.3.1.</span> <span class="nav-text">3.1 关于Bitmap的OOM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-ImageView等控件图片的显示"><span class="nav-number">2.3.1.1.</span> <span class="nav-text">3.1.1 ImageView等控件图片的显示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-及时释放内存"><span class="nav-number">2.3.1.2.</span> <span class="nav-text">3.1.2 及时释放内存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-3-把图片进行压缩"><span class="nav-number">2.3.1.3.</span> <span class="nav-text">3.1.3 把图片进行压缩</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-4-使用Bitmap的高级属性inBitmap"><span class="nav-number">2.3.1.4.</span> <span class="nav-text">3.1.4 使用Bitmap的高级属性inBitmap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-5-捕获异常"><span class="nav-number">2.3.1.5.</span> <span class="nav-text">3.1.5 捕获异常</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-除了Bitmap之外的OOM"><span class="nav-number">2.3.2.</span> <span class="nav-text">3.2 除了Bitmap之外的OOM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-1-listview"><span class="nav-number">2.3.2.1.</span> <span class="nav-text">3.2.1 listview</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-onDraw方法当中，尽量避免对象的创建"><span class="nav-number">2.3.2.2.</span> <span class="nav-text">3.2.2 onDraw方法当中，尽量避免对象的创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-3-使用多进程，一定要小心小心再小心"><span class="nav-number">2.3.2.3.</span> <span class="nav-text">3.2.3 使用多进程，一定要小心小心再小心</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#干货总结"><span class="nav-number">3.</span> <span class="nav-text">干货总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2017 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">senduo</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("Y5sgWBR0QVcvuVWG3MkOeH0P-gzGzoHsz", "M5ELqx0yvwMVH7iAMMPqfIg4");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
