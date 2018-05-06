@@ -69,12 +69,12 @@
         <tag>进阶</tag>
         <tag>性能调优</tag>
         <tag>JVM</tag>
+        <tag>内存泄露</tag>
         <tag>内存分配</tag>
         <tag>JVM内存模型</tag>
         <tag>java内存分配</tag>
         <tag>内存溢出</tag>
         <tag>内存抖动</tag>
-        <tag>内存泄露</tag>
         <tag>图片压缩</tag>
         <tag>inBitmap</tag>
         <tag>inSampleSize</tag>
