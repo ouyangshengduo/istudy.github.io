@@ -1,1 +1,1 @@
-http://www.senduo.site/2018/06/22/手写Android序列化框架FastJson（简易版）/
+http://www.senduo.site/archives/2018/06/22/手写Android序列化框架FastJson（简易版）/
