@@ -1,1 +1,1 @@
-http://www.senduo.site/2018/05/06/模拟OkHttp框架，手写简易网络访问框架/
+http://www.senduo.site/2018/06/22/手写Android序列化框架FastJson（简易版）/
