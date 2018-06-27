@@ -120,9 +120,9 @@
          
         <tag>activity</tag>
          
-        <tag>生命周期</tag>
-         
         <tag>任务栈</tag>
+         
+        <tag>生命周期</tag>
          
         <tag>启动模式</tag>
          
@@ -191,13 +191,13 @@
          
         <tag>JVM</tag>
          
+        <tag>内存泄露</tag>
+         
         <tag>内存分配</tag>
          
         <tag>JVM内存模型</tag>
          
         <tag>java内存分配</tag>
-         
-        <tag>内存泄露</tag>
          
         <tag>内存溢出</tag>
          
